@@ -12,7 +12,6 @@
 #include <vector>
 #include "Client.hpp"
 
-#define BUF_SIZE 512
 #define MAX_CLIENT 100
 
 class Server {
@@ -22,8 +21,7 @@ class Server {
 		std::vector<struct pollfd> _pollFds;
 		std::string _pwd;
 		std::vector<Client> _clients;
-		char _buf[BUF_SIZE];
-		char _saveBuf[MAX_CLIENT][BUF_SIZE * 2];
+		std::string _lines[MAX_CLIENT];
 
 	public:
 		Server(int port, std::string pwd);

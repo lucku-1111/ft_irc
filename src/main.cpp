@@ -9,7 +9,7 @@ bool check_port(char* str) {
 }
 
 int main(int ac, char** av) {
-	int (ac != 3 || !check_port(av[1])) {
+	if (ac != 3 || !check_port(av[1])) {
 		std::cout << "Invalid arguments" << std::endl;
 		return (1);
 	}

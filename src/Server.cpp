@@ -20,7 +20,7 @@ Server::Server(int port, std::string pwd) : _pwd(pwd) {
 			close(_servFd);
 		std::cerr << "Error: " << e.what() << std::endl;
 	}
-	_pollFds.push_back((struct pullfd){_servFd, POLLIN, 0});
+	_pollFds.push_back((struct pollfd){_servFd, POLLIN, 0});
 }
 
 bool Server::acceptClient() {
@@ -34,14 +34,26 @@ bool Server::acceptClient() {
 	_pollFds[0].revents = 0;
 	fcntl(clientFd, F_SETFL, O_NONBLOCK);
 
-	_clients.push_back(client(clientFd));
+	_clients.push_back(Client(clientFd));
 
 	return (true);
 }
 
-bool Server::readClient(int i) {
-	int fd = _clients.getClientFd();
-	int r = recv(fd, _)
+bool Server::recvClient(int i) {
+	int count = 0;
+	int sum = 0;
+	char buf[1] = {0};
+
+	while ((count = recv(_pollFds[i].fd, buf, 1, 0)) > 0) {
+		sum += count;
+		_lines[i].append(buf);
+		if (_lines[i].find("\r\n"))
+			break;
+		buf[0] = 0;
+	}
+	if (sum > 0)
+		return (true);
+	return (false);
 }
 
 void Server::startServ() {
@@ -53,7 +65,8 @@ void Server::startServ() {
 		for (int i = 1; i < (int)(_pollFds.size()); i++) {
 			if (_pollFds[i].revents & (POLLIN | POLLHUP)) {
 				if (!this->readClient(i))
-				std::cout << "err" << std::endl; // 에러핸들
+					std::cout << "err" << std::endl; // 에러핸들
+				std::cout << _lines[i] << std::endl;
 			}
 		}
 	}

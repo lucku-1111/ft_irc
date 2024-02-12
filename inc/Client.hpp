@@ -11,7 +11,6 @@ class Client {
 		std::string _servname;
 		std::string _realname;
 		int _clientFd;
-		int _status;
 	public:
 		Client(int fd);
 		int getClientFd();
