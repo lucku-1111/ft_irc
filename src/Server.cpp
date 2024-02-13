@@ -35,7 +35,7 @@ bool Server::acceptClient() {
 	_pollFds[0].revents = 0;
 	fcntl(clientFd, F_SETFL, O_NONBLOCK);
 
-	_clients.push_back(Client(clientFd));
+	// _clients.push_back(Client(clientFd));
 
 	return (true);
 }
@@ -49,11 +49,9 @@ bool Server::recvClient(int i) {
 	std::memset(buf, 0, BUF_SIZE);
 
 
-
-	if (count == 0) {} // 클라이언트 연결 종료 처리
-
-	// 받은 명령어 처리
-	std::cout << _lines[i] << std::endl;
+	if (count < 0) {} // 에러 처리
+	else if (count == 0) {} // 클라이언트 연결 종료 처리
+	else {} // 명령어 파싱하고 명령 파트 보내주기
 }
 
 void Server::startServ() {
@@ -62,13 +60,13 @@ void Server::startServ() {
 	while (poll(&_pollFds[0], _pollFds.size(), -1)) {
 		if (_pollFds[0].revents & POLLIN) {
 			if (!this->acceptClient())
-				std::cout << "err" << std::endl; // 에러핸들
+				std::cout << "err" << std::endl; // 에러 처리
 		}
 		for (int i = 1; i < (int)(_pollFds.size()); i++) {
 			if (_pollFds[i].revents & (POLLIN | POLLHUP)) {
 				std::cout << "i: " << i << std::endl;
 				if (!this->recvClient(i))
-					std::cout << "err" << std::endl; // 에러핸들
+					std::cout << "err" << std::endl; // 에러 처리
 				// _lines[i].clear();
 			}
 		}
