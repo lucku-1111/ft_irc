@@ -12,6 +12,7 @@
 #include <vector>
 #include "Client.hpp"
 
+#define BUF_SIZE 512
 #define MAX_CLIENT 100
 
 class Server {
@@ -28,7 +29,7 @@ class Server {
 
 		void startServ();
 		bool acceptClient();
-		bool readClient(int i);
+		bool recvClient(int i);
 };
 
 #endif

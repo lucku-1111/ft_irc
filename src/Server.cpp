@@ -19,6 +19,7 @@ Server::Server(int port, std::string pwd) : _pwd(pwd) {
 		if (_servFd != -1)
 			close(_servFd);
 		std::cerr << "Error: " << e.what() << std::endl;
+		exit(1);
 	}
 	_pollFds.push_back((struct pollfd){_servFd, POLLIN, 0});
 }
@@ -41,22 +42,23 @@ bool Server::acceptClient() {
 
 bool Server::recvClient(int i) {
 	int count = 0;
-	int sum = 0;
-	char buf[1] = {0};
+	char buf[BUF_SIZE] = {0,};
 
-	while ((count = recv(_pollFds[i].fd, buf, 1, 0)) > 0) {
-		sum += count;
-		_lines[i].append(buf);
-		if (_lines[i].find("\r\n"))
-			break;
-		buf[0] = 0;
-	}
-	if (sum > 0)
-		return (true);
-	return (false);
+	count = recv(_pollFds[i].fd, buf, BUF_SIZE, 0)) > 0)
+	_lines[i].append(buf);
+	std::memset(buf, 0, BUF_SIZE);
+
+
+
+	if (count == 0) {} // 클라이언트 연결 종료 처리
+
+	// 받은 명령어 처리
+	std::cout << _lines[i] << std::endl;
 }
 
 void Server::startServ() {
+	std::cout << "server opened" << std::endl;
+
 	while (poll(&_pollFds[0], _pollFds.size(), -1)) {
 		if (_pollFds[0].revents & POLLIN) {
 			if (!this->acceptClient())
@@ -64,9 +66,10 @@ void Server::startServ() {
 		}
 		for (int i = 1; i < (int)(_pollFds.size()); i++) {
 			if (_pollFds[i].revents & (POLLIN | POLLHUP)) {
-				if (!this->readClient(i))
+				std::cout << "i: " << i << std::endl;
+				if (!this->recvClient(i))
 					std::cout << "err" << std::endl; // 에러핸들
-				std::cout << _lines[i] << std::endl;
+				// _lines[i].clear();
 			}
 		}
 	}
