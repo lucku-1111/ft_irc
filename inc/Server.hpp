@@ -29,7 +29,9 @@ class Server {
 
 		void startServ();
 		bool acceptClient();
-		bool recvClient(int i);
+		void recvClient(int i);
 };
+
+std::vector<std::string> splitMsg(std::string line);
 
 #endif
