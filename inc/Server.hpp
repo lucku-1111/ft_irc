@@ -10,26 +10,40 @@
 #include <cstring>
 #include <iostream>
 #include <vector>
+#include <map>
+
 #include "Client.hpp"
+#include "Channel.hpp"
 
 #define BUF_SIZE 512
 #define MAX_CLIENT 100
 
 class Server {
-	private:
-		int _servFd;
-		struct sockaddr_in _servAddr;
-		std::vector<struct pollfd> _pollFds;
-		std::string _pwd;
-		std::vector<Client> _clients;
-		std::string _lines[MAX_CLIENT];
+private:
 
-	public:
-		Server(int port, std::string pwd);
+	int _servFd;
+	struct sockaddr_in _servAddr;
+	std::vector<struct pollfd> _pollFds;
+	std::string _pwd;
+	std::string _lines[MAX_CLIENT];
 
-		void startServ();
-		bool acceptClient();
-		bool recvClient(int i);
+	///// Server Database /////
+
+	// 클라이언트들의 정보를 저장하는 맵
+	std::map<int, Client> _clients;
+
+	// 채널들의 정보를 저장하는 맵
+	std::map<std::string, Channel> _channels;
+
+
+public:
+	Server(int port, std::string pwd);
+
+	void startServ();
+
+	bool acceptClient();
+
+	bool recvClient(int i);
 };
 
 #endif
