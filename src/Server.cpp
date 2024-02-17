@@ -74,3 +74,12 @@ void Server::startServ() {
 		}
 	}
 }
+
+
+
+///// Command Execution /////
+
+void Server::executeCommand(int fd, std::vector<std::string> cmd) {
+	// 명령어 처리
+	// Todo : 명령어 처리
+}

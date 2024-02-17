@@ -44,6 +44,45 @@ private:
 	bool _isUserLimitSet;
 
 public:
+	///// Constructor & Destructor /////
+	Channel();
+
+	Channel(std::string channelName);
+
+	virtual ~Channel();
+
+	///// Getter /////
+	std::string getChannelName();
+
+	std::map<int, Client *> getClients();
+
+	std::vector<int> getInviteList();
+
+	std::vector<int> getOperatorList();
+
+	std::string getPassword();
+
+	std::string getTopic();
+
+	int getUserLimit();
+
+	///// Setter /////
+	void setChannelName(std::string channelName);
+
+	void setPassword(std::string password);
+
+	void setTopic(std::string topic);
+
+	void setUserLimit(int userLimit);
+
+	void setIsPasswordSet(bool isPasswordSet);
+
+	void setIsInviteOnly(bool isInviteOnly);
+
+	void setIsTopicProtected(bool isTopicProtected);
+
+	void setIsUserLimitSet(bool isUserLimitSet);
+
 
 };
 

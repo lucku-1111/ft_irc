@@ -44,6 +44,12 @@ public:
 	bool acceptClient();
 
 	bool recvClient(int i);
+
+	///// Command Execution /////
+	void executeCommand(int fd, std::vector<std::string> cmd);
+
+
+
 };
 
 #endif
