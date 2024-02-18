@@ -46,8 +46,34 @@ public:
 	bool recvClient(int i);
 
 	///// Command Execution /////
-	void executeCommand(int fd, std::vector<std::string> cmd);
+	void executeCommand(int fd, std::vector<std::string> cmds);
 
+	///// Command Functions /////
+	void commandPass(int fd, std::vector<std::string> cmds);
+
+	void commandNick(int fd, std::vector<std::string> cmds);
+
+	void commandUser(int fd, std::vector<std::string> cmds);
+
+	void commandJoin(int fd, std::vector<std::string> cmds);
+
+	void commandPart(int fd, std::vector<std::string> cmds);
+
+	void commandQuit(int fd, std::vector<std::string> cmds);
+
+	void commandTopic(int fd, std::vector<std::string> cmds);
+
+	void commandInvite(int fd, std::vector<std::string> cmds);
+
+	void commandKick(int fd, std::vector<std::string> cmds);
+
+	void commandPrivmsg(int fd, std::vector<std::string> cmds);
+
+	void commandMode(int fd, std::vector<std::string> cmds);
+
+	void commandPing(int fd, std::vector<std::string> cmds);
+
+	void commandPong(int fd, std::vector<std::string> cmds);
 
 
 };

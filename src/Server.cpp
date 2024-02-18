@@ -9,13 +9,14 @@ Server::Server(int port, std::string pwd) : _pwd(pwd) {
 		_servAddr.sin_addr.s_addr = INADDR_ANY;
 		_servAddr.sin_port = htons(port);
 
-		if (bind(_servFd, (struct sockaddr*)&_servAddr, sizeof(_servAddr)) == -1)
+		if (bind(_servFd, (struct sockaddr *)&_servAddr, sizeof(_servAddr)) ==
+			-1)
 			throw std::runtime_error("bind");
-	
+
 		if (listen(_servFd, MAX_CLIENT) == -1)
 			throw std::runtime_error("listen");
 	}
-	catch (const std::runtime_error& e) {
+	catch (const std::runtime_error &e) {
 		if (_servFd != -1)
 			close(_servFd);
 		std::cerr << "Error: " << e.what() << std::endl;
@@ -27,7 +28,7 @@ Server::Server(int port, std::string pwd) : _pwd(pwd) {
 bool Server::acceptClient() {
 	struct sockaddr_in clientAddr;
 	socklen_t clientLen = sizeof(clientAddr);
-	int clientFd = accept(_servFd, (struct sockaddr*)&clientAddr, &clientLen);
+	int clientFd = accept(_servFd, (struct sockaddr *)&clientAddr, &clientLen);
 	if (clientFd == -1)
 		return (false);
 
@@ -49,8 +50,8 @@ bool Server::recvClient(int i) {
 	std::memset(buf, 0, BUF_SIZE);
 
 
-
-	if (count == 0) {} // 클라이언트 연결 종료 처리
+	if (count == 0) {
+	} // 클라이언트 연결 종료 처리
 
 	// 받은 명령어 처리
 	std::cout << _lines[i] << std::endl;
@@ -75,11 +76,70 @@ void Server::startServ() {
 	}
 }
 
-
-
 ///// Command Execution /////
 
-void Server::executeCommand(int fd, std::vector<std::string> cmd) {
+void Server::executeCommand(int fd, std::vector<std::string> cmds) {
 	// 명령어 처리
-	// Todo : 명령어 처리
+	// 명령어 벡터 string으로 받아오기
+	std::string command = cmds[0];
+
+	while (1) {
+		// 클라이언트의 상태에 따라 명령을 처리
+		if (_clients[fd].getStatus() == ClientState::NoPassword) {
+			// 비밀번호가 없는 상태에서 pass 명령어인 경우
+			if (command == "pass" || command == "PASS")
+				commandPass(fd, cmds);
+			else
+				// 비밀번호가 없는 상태에서 pass 명령어가 아닌 경우
+				addBuffer("CheckIn command is |PASS| -> |NICK| -> |USER| \r\n",
+						  fd);
+		} else if (_clients[fd].getStatus() == ClientState::NoNickname) {
+			// 닉네임이 없는 상태에서 pass, nick 명령어인 경우
+			if (command == "pass" || command == "PASS")
+				commandPass(fd, cmds);
+			else if (command == "nick" || command == "NICK")
+				commandNick(fd, cmds);
+			else
+				addBuffer("CheckIn command is |PASS| -> |NICK| -> |USER| \r\n",
+						  fd);
+		} else if (_clients[fd].getStatus() == ClientState::NoUsername) {
+			// 유저네임이 없는 상태에서 pass, nick, user 명령어인 경우
+			if (command == "pass" || command == "PASS")
+				commandPass(fd, cmds);
+			else if (command == "user" || command == "USER")
+				commandUser(fd, cmds);
+			else if (command == "nick" || command == "NICK")
+				commandNick(fd, cmds);
+		} else if (_clients[fd].getStatus() == ClientState::LoggedIn) {
+			// 로그인 상태에서 명령어 처리
+			if (command == "quit" || command == "QUIT")
+				commandQuit(fd, cmds);
+			else if (command == "join" || command == "JOIN")
+				commandJoin(fd, cmds);
+			else if (command == "nick" || command == "NICK")
+				commandNick(fd, cmds);
+			else if (command == "pass" || command == "PASS")
+				commandPass(fd, cmds);
+			else if (command == "user" || command == "USER")
+				commandUser(fd, cmds);
+			else if (command == "part" || command == "PART")
+				commandPart(fd, cmds);
+			else if (command == "privmsg" || command == "PRIVMSG")
+				commandPrivmsg(fd, cmds);
+			else if (command == "kick" || command == "KICK")
+				commandKick(fd, cmds);
+			else if (command == "invite" || command == "INVITE")
+				commandInvite(fd, cmds);
+			else if (command == "topic" || command == "TOPIC")
+				commandTopic(fd, cmds);
+			else if (command == "mode" || command == "MODE")
+				commandMode(fd, cmds);
+			else if (command == "ping" || command == "PING")
+				commandPing(fd, cmds);
+			else if (command == "pong" || command == "PONG")
+				commandPong(fd, cmds);
+		}
+	}
+
+
 }
