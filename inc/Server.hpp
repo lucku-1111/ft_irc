@@ -48,32 +48,35 @@ public:
 	///// Command Execution /////
 	void executeCommand(int fd, std::vector<std::string> cmds);
 
+	///// Send Function /////
+	void sendMsg(int fd, std::string msg);
+
 	///// Command Functions /////
-	void commandPass(int fd, std::vector<std::string> cmds);
+	void cmdPass(int fd, std::vector<std::string> cmds);
 
-	void commandNick(int fd, std::vector<std::string> cmds);
+	void cmdNick(int fd, std::vector<std::string> cmds);
 
-	void commandUser(int fd, std::vector<std::string> cmds);
+	void cmdUser(int fd, std::vector<std::string> cmds);
 
-	void commandJoin(int fd, std::vector<std::string> cmds);
+	void cmdJoin(int fd, std::vector<std::string> cmds);
 
-	void commandPart(int fd, std::vector<std::string> cmds);
+	void cmdPart(int fd, std::vector<std::string> cmds);
 
-	void commandQuit(int fd, std::vector<std::string> cmds);
+	void cmdQuit(int fd, std::vector<std::string> cmds);
 
-	void commandTopic(int fd, std::vector<std::string> cmds);
+	void cmdTopic(int fd, std::vector<std::string> cmds);
 
-	void commandInvite(int fd, std::vector<std::string> cmds);
+	void cmdInvite(int fd, std::vector<std::string> cmds);
 
-	void commandKick(int fd, std::vector<std::string> cmds);
+	void cmdKick(int fd, std::vector<std::string> cmds);
 
-	void commandPrivmsg(int fd, std::vector<std::string> cmds);
+	void cmdPrivMsg(int fd, std::vector<std::string> cmds);
 
-	void commandMode(int fd, std::vector<std::string> cmds);
+	void cmdMode(int fd, std::vector<std::string> cmds);
 
-	void commandPing(int fd, std::vector<std::string> cmds);
+	void cmdPing(int fd, std::vector<std::string> cmds);
 
-	void commandPong(int fd, std::vector<std::string> cmds);
+	void cmdPong(int fd, std::vector<std::string> cmds);
 
 
 };

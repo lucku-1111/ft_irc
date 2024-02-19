@@ -3,13 +3,27 @@
 ///// Constructor & Destructor /////
 
 Client::Client() {
+	_clientFd = -1;
+	_clientFd = -1;
+	ClientStatus _status = ClientStatus::NoPassword;
+	_nickName = "*";
+	_userName = "*";
+	_hostName = "*";
+	_realName = "*";
+	_serverName = "*";
 };
 
 Client::~Client() {
 };
 
 Client::Client(int fd) : _clientFd(fd) {
-
+	_clientFd = fd;
+	ClientStatus _status = ClientStatus::NoPassword;
+	_nickName = "*";
+	_userName = "*";
+	_hostName = "*";
+	_realName = "*";
+	_serverName = "*";
 }
 
 ///// Get data /////
@@ -18,8 +32,14 @@ int Client::getClientFd() {
 	return (_clientFd);
 }
 
-int Client::getStatus() {
-	return (_status);
+ClientStatus Client::getStatus() {
+	if (!_isPasswordSet)
+		return (ClientStatus::NoPassword);
+	if (!_isNickSet)
+		return (ClientStatus::NoNickname);
+	if (!_isUserSet)
+		return (ClientStatus::NoUsername);
+	return (ClientStatus::LoggedIn);
 }
 
 std::string Client::getNickName() {
@@ -48,7 +68,7 @@ void Client::setClientFd(int fd) {
 	_clientFd = fd;
 }
 
-void Client::setStatus(int status) {
+void Client::setStatus(ClientStatus status) {
 	_status = status;
 }
 

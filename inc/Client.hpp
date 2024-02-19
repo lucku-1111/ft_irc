@@ -4,6 +4,13 @@
 #include <string>
 #include "Define.hpp"
 
+enum class ClientStatus {
+	NoPassword,
+	NoNickname,
+	NoUsername,
+	LoggedIn
+};
+
 class Client {
 private:
 	///// 클라이언트 데이터 /////
@@ -12,7 +19,7 @@ private:
 	int _clientFd;
 
 	// 클라이언트의 상태
-	int _status;
+	ClientStatus _status;
 
 	// 클라이언트의 닉네임
 	std::string _nickName;
@@ -28,6 +35,20 @@ private:
 
 	// 클라이언트의 서버네임
 	std::string _serverName;
+
+	// 클라이언트의 비밀번호
+	std::string _password;
+
+
+	///// 클라이언트의 명령어 수신 여부 /////
+	// PASS 명령어가 수신되었는지 여부
+	bool _isPasswordSet;
+
+	// NICK 명령어가 수신되었는지 여부
+	bool _isNickSet;
+
+	// USER 명령어가 수신되었는지 여부
+	bool _isUserSet;
 
 
 public:
@@ -45,7 +66,7 @@ public:
 	int getClientFd();
 
 	// get client's status
-	int getStatus();
+	ClientStatus getStatus();
 
 	// get client's nickname
 	std::string getNickName();
@@ -62,12 +83,15 @@ public:
 	// get client's servername
 	std::string getServerName();
 
+	// get client's password
+	std::string getPassword();
+
 	///// Setter /////
 	// set client's file descriptor
 	void setClientFd(int fd);
 
 	// set client's status
-	void setStatus(int status);
+	void setStatus(ClientStatus status);
 
 	// set client's nickname
 	void setNickName(std::string nickName);
@@ -83,6 +107,19 @@ public:
 
 	// set client's servername
 	void setServerName(std::string serverName);
+
+	// set client's password
+	void setPassword(std::string password);
+
+	// set PASS command received
+	void setIsPasswordSet(bool isPasswordSet);
+
+	// set NICK command received
+	void setIsNickSet(bool isNickSet);
+
+	// set USER command received
+	void setIsUserSet(bool isUserSet);
+
 
 
 };

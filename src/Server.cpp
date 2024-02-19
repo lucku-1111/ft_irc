@@ -81,65 +81,110 @@ void Server::startServ() {
 void Server::executeCommand(int fd, std::vector<std::string> cmds) {
 	// 명령어 처리
 	// 명령어 벡터 string으로 받아오기
-	std::string command = cmds[0];
+	std::string cmdType = cmds[0];
 
 	while (1) {
 		// 클라이언트의 상태에 따라 명령을 처리
-		if (_clients[fd].getStatus() == ClientState::NoPassword) {
+		if (_clients[fd].getStatus() == ClientStatus::NoPassword) {
 			// 비밀번호가 없는 상태에서 pass 명령어인 경우
-			if (command == "pass" || command == "PASS")
-				commandPass(fd, cmds);
+			if (cmdType == "pass" || cmdType == "PASS")
+				// pass 명령어 처리
+				cmdPass(fd, cmds);
 			else
 				// 비밀번호가 없는 상태에서 pass 명령어가 아닌 경우
-				addBuffer("CheckIn command is |PASS| -> |NICK| -> |USER| \r\n",
-						  fd);
-		} else if (_clients[fd].getStatus() == ClientState::NoNickname) {
-			// 닉네임이 없는 상태에서 pass, nick 명령어인 경우
-			if (command == "pass" || command == "PASS")
-				commandPass(fd, cmds);
-			else if (command == "nick" || command == "NICK")
-				commandNick(fd, cmds);
+				send(fd,
+					 "CheckIn cmdType must be in order : |PASS| -> |NICK| -> |USER| \r\n",
+					 61, 0);
+		} else if (_clients[fd].getStatus() == ClientStatus::NoNickname) {
+			// 비밀번호는 있고 닉네임이 없는 상태에서 pass, nick 명령어인 경우
+			if (cmdType == "pass" || cmdType == "PASS")
+				// pass 명령어 처리 : pass는 마지막에 들어온 pass 기준으로 저장
+				cmdPass(fd, cmds);
+			else if (cmdType == "nick" || cmdType == "NICK")
+				// nick 명령어 처리
+				cmdNick(fd, cmds);
 			else
-				addBuffer("CheckIn command is |PASS| -> |NICK| -> |USER| \r\n",
-						  fd);
-		} else if (_clients[fd].getStatus() == ClientState::NoUsername) {
+				// 비밀번호는 있고 닉네임이 없는 상태에서 pass, nick 명령어가 아닌 경우
+				send(fd,
+					 "CheckIn cmdType must be in order : |PASS| -> |NICK| -> |USER| \r\n",
+					 61, 0);
+		} else if (_clients[fd].getStatus() == ClientStatus::NoUsername) {
 			// 유저네임이 없는 상태에서 pass, nick, user 명령어인 경우
-			if (command == "pass" || command == "PASS")
-				commandPass(fd, cmds);
-			else if (command == "user" || command == "USER")
-				commandUser(fd, cmds);
-			else if (command == "nick" || command == "NICK")
-				commandNick(fd, cmds);
-		} else if (_clients[fd].getStatus() == ClientState::LoggedIn) {
+			if (cmdType == "pass" || cmdType == "PASS")
+				cmdPass(fd, cmds);
+			else if (cmdType == "nick" || cmdType == "NICK")
+				cmdNick(fd, cmds);
+			else if (cmdType == "user" || cmdType == "USER") {
+				cmdUser(fd, cmds);
+				// welcome 메시지 전송
+				send(fd, "001 :Welcome to the Internet Relay Network\r\n", 42,
+					 0);
+			}
+		} else if (_clients[fd].getStatus() == ClientStatus::LoggedIn) {
 			// 로그인 상태에서 명령어 처리
-			if (command == "quit" || command == "QUIT")
-				commandQuit(fd, cmds);
-			else if (command == "join" || command == "JOIN")
-				commandJoin(fd, cmds);
-			else if (command == "nick" || command == "NICK")
-				commandNick(fd, cmds);
-			else if (command == "pass" || command == "PASS")
-				commandPass(fd, cmds);
-			else if (command == "user" || command == "USER")
-				commandUser(fd, cmds);
-			else if (command == "part" || command == "PART")
-				commandPart(fd, cmds);
-			else if (command == "privmsg" || command == "PRIVMSG")
-				commandPrivmsg(fd, cmds);
-			else if (command == "kick" || command == "KICK")
-				commandKick(fd, cmds);
-			else if (command == "invite" || command == "INVITE")
-				commandInvite(fd, cmds);
-			else if (command == "topic" || command == "TOPIC")
-				commandTopic(fd, cmds);
-			else if (command == "mode" || command == "MODE")
-				commandMode(fd, cmds);
-			else if (command == "ping" || command == "PING")
-				commandPing(fd, cmds);
-			else if (command == "pong" || command == "PONG")
-				commandPong(fd, cmds);
+			if (cmdType == "pass" || cmdType == "PASS")
+				send(fd, "462 PASS :You may not reregister\r\n", 33, 0);
+			else if (cmdType == "nick" || cmdType == "NICK")
+				cmdNick(fd, cmds);
+			else if (cmdType == "user" || cmdType == "USER")
+				send(fd, "462 USER :You may not reregister\r\n", 33, 0);
+			else if (cmdType == "join" || cmdType == "JOIN")
+				cmdJoin(fd, cmds);
+			else if (cmdType == "part" || cmdType == "PART")
+				cmdPart(fd, cmds);
+			else if (cmdType == "privmsg" || cmdType == "PRIVMSG")
+				cmdPrivMsg(fd, cmds);
+			else if (cmdType == "kick" || cmdType == "KICK")
+				cmdKick(fd, cmds);
+			else if (cmdType == "invite" || cmdType == "INVITE")
+				cmdInvite(fd, cmds);
+			else if (cmdType == "topic" || cmdType == "TOPIC")
+				cmdTopic(fd, cmds);
+			else if (cmdType == "mode" || cmdType == "MODE")
+				cmdMode(fd, cmds);
+			else if (cmdType == "quit" || cmdType == "QUIT")
+				cmdQuit(fd, cmds);
+			else if (cmdType == "ping" || cmdType == "PING")
+				cmdPing(fd, cmds);
 		}
 	}
 
+}
 
+///// Send Function /////
+void Server::sendMsg(int fd, std::string msg) {
+	// send 함수
+	int ret = send(fd, msg.c_str(), msg.length(), 0);
+
+	if (ret == -1)
+		std::cerr << "send error : " << msg << std::endl;
+}
+
+///// Command Functions /////
+void Server::cmdPass(int fd, std::vector<std::string> cmds) {
+	if (cmds.size() < 2)
+		send(fd, "461 PASS :Not enough parameters\r\n", 31, 0);
+	else {
+		_clients[fd].setPassword(cmds[1]);
+		_clients[fd].setIsPasswordSet(true);
+	}
+}
+
+void Server::cmdNick(int fd, std::vector<std::string> cmds) {
+	if (cmds.size() < 2)
+		send(fd, "461 NICK :Not enough parameters\r\n", 31, 0);
+	else {
+		_clients[fd].setNickName(cmds[1]);
+		_clients[fd].setIsNickSet(true);
+	}
+}
+
+void Server::cmdUser(int fd, std::vector<std::string> cmds) {
+	if (cmds.size() < 5)
+		send(fd, "461 USER :Not enough parameters\r\n", 31, 0);
+	else {
+		_clients[fd].setUserName(cmds[1]);
+		_clients[fd].setRealName(cmds[4]);
+		_clients[fd].setIsUserSet(true);
+	}
 }
