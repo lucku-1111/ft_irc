@@ -83,6 +83,26 @@ public:
 
 	void setIsUserLimitSet(bool isUserLimitSet);
 
+	// 채널에 클라이언트를 추가하는 메서드
+	void addClient(int fd, Client *client);
+
+	// 채널에서 클라이언트를 제거하는 메서드
+	void removeClient(int fd);
+
+	// 자신을 제외한 모든 클라이언트에게 메시지를 보내는 메서드
+	void sendToAllClients(int fd, std::string message);
+
+	// 클라이언트가 op인지 확인하는 메서드
+	bool isClientOP(int fd);
+
+	// OP리스트에 클라이언트 추가
+	void addClientToOPList(int fd);
+
+	// OP리스트에서 클라이언트 제거
+	void removeClientFromOPList(int fd);
+
+
+
 
 };
 

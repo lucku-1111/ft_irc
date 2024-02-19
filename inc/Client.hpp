@@ -120,7 +120,11 @@ public:
 	// set USER command received
 	void setIsUserSet(bool isUserSet);
 
+	// add channel to client
+	void addChannel(std::string channelName);
 
+	// remove channel from client
+	void removeChannel(std::string channelName);
 
 };
 

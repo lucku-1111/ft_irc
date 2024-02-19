@@ -48,8 +48,10 @@ public:
 	///// Command Execution /////
 	void executeCommand(int fd, std::vector<std::string> cmds);
 
-	///// Send Function /////
+	///// Send Functions /////
 	void sendMsg(int fd, std::string msg);
+
+	void sendMsgToChannel(std::string channelName, std::string msg);
 
 	///// Command Functions /////
 	void cmdPass(int fd, std::vector<std::string> cmds);
@@ -62,7 +64,7 @@ public:
 
 	void cmdPart(int fd, std::vector<std::string> cmds);
 
-	void cmdQuit(int fd, std::vector<std::string> cmds);
+	void cmdPrivMsg(int fd, std::vector<std::string> cmds);
 
 	void cmdTopic(int fd, std::vector<std::string> cmds);
 
@@ -70,14 +72,14 @@ public:
 
 	void cmdKick(int fd, std::vector<std::string> cmds);
 
-	void cmdPrivMsg(int fd, std::vector<std::string> cmds);
 
 	void cmdMode(int fd, std::vector<std::string> cmds);
 
 	void cmdPing(int fd, std::vector<std::string> cmds);
 
-	void cmdPong(int fd, std::vector<std::string> cmds);
+	void cmdQuit(int fd, std::vector<std::string> cmds);
 
+	int getClinetFdbyNick(std::string nick);
 
 };
 
