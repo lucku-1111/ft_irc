@@ -48,7 +48,7 @@ public:
 	void recvClient(int i);
 
 	///// Command Execution /////
-	void executeCommand(int fd, std::vector<std::string> cmds);
+	void executeCommand(int fd, std::vector<std::string> cmds, int idx);
 
 	///// Send Functions /////
 	void sendMsg(int fd, std::string msg);
@@ -76,9 +76,9 @@ public:
 
 	void cmdKick(int fd, std::vector<std::string> cmds);
 
-//	void cmdPing(int fd, std::vector<std::string> cmds);
-//
-//	void cmdQuit(int fd, std::vector<std::string> cmds);
+	void cmdPing(int fd, std::vector<std::string> cmds);
+
+	void cmdQuit(int fd, std::vector<std::string> cmds, int i);
 
 	void sendMsgToChannel(int fd, std::string channelName, std::string msg);
 

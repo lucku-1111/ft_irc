@@ -72,6 +72,10 @@ std::string Client::getPassword() {
 	return (_password);
 }
 
+std::map<std::string, Channel *> Client::getClientChannels() {
+	return (_clientChannels);
+}
+
 ///// Set data /////
 
 void Client::setClientFd(int fd) {

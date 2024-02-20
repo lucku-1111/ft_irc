@@ -3,7 +3,6 @@
 
 #include "Server.hpp"
 #include "Client.hpp"
-#include "Define.hpp"
 #include <map>
 #include <vector>
 
@@ -121,6 +120,9 @@ public:
 
 	// OP리스트에서 클라이언트 제거
 	void removeClientFromOPList(int fd);
+
+    // 초대 리스트에 클라이언트 제거
+    void removeClientFromInviteList(int fd);
 
 
 };

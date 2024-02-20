@@ -47,10 +47,10 @@
 #define RPL_LISTEND(nick) ":HI_IRC 323 " + nick + " :End of /LIST\r\n"
 
 // QUIT
-#define RPL_QUIT(nick, user, ip, msg) ":" + nick + "!" + user + "@" + ip + " QUIT " + msg + "\r\n"
+//#define RPL_QUIT(nick, user, ip, msg) ":" + nick + "!" + user + "@" + ip + " QUIT " + msg + "\r\n"
 
 // PONG
-#define RPL_PONG(ip) ":HI_IRC PONG " + ip + "\r\n"
+//#define RPL_PONG(ip) ":HI_IRC PONG " + ip + "\r\n"
 
 // OP/DEOP
 #define RPL_OP(nick, user, ip, channel, opuser) ":" + nick + "!" + user + "@" + ip + " MODE " + channel + " +o " + opuser + "\r\n";

@@ -2,8 +2,8 @@
 #define CLIENT_HPP
 
 #include <string>
-#include "Define.hpp"
 #include "Channel.hpp"
+#include "Server.hpp"
 #include <map>
 
 enum ClientStatus {
@@ -45,7 +45,6 @@ private:
 
 	// 클라이언트가 속한 채널
 	std::map<std::string, Channel *> _clientChannels;
-
 
 	///// 클라이언트의 명령어 수신 여부 /////
 	// PASS 명령어가 수신되었는지 여부
@@ -92,6 +91,8 @@ public:
 
 	// get client's password
 	std::string getPassword();
+
+	std::map<std::string, Channel *> getClientChannels();
 
 	///// Setter /////
 	// set client's file descriptor
