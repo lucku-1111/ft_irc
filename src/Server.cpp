@@ -75,11 +75,16 @@ void Server::recvClient(int i) {
         if (count == 0) {
             std::cerr << "Client(fd: " << clientFd << ") is disconnected" << std::endl;
             cmdQuit(clientFd, i);
+            return ;
         }
-        else
-            std::cerr << "Error: recv function fail" << std::endl;
-        // close(clientFd);
-        // _pollFds.erase(_pollFds.begin() + i);
+        std::cerr << "Error: recv function fail" << std::endl;
+        _lines[i].clear();
+        close(clientFd);
+        _pollFds.erase(_pollFds.begin() + i);
+        for (std::map<std::string, Channel>::iterator it = _channels.begin(); it != _channels.end(); it++) {
+            it->second.removeClient(clientFd);
+        }
+        _clients.erase(clientFd);
         return;
     }
 
