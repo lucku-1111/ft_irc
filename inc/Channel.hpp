@@ -3,6 +3,7 @@
 
 #include "Client.hpp"
 #include <map>
+#include <vector>
 
 class Client;
 

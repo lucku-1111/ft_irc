@@ -39,7 +39,7 @@ public:
 
 	void startServ();
 
-	bool acceptClient();
+	void acceptClient();
 
 	void recvClient(int i);
 
