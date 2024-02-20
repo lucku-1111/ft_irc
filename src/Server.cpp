@@ -9,13 +9,14 @@ Server::Server(int port, std::string pwd) : _pwd(pwd) {
 		_servAddr.sin_addr.s_addr = INADDR_ANY;
 		_servAddr.sin_port = htons(port);
 
-		if (bind(_servFd, (struct sockaddr*)&_servAddr, sizeof(_servAddr)) == -1)
+		if (bind(_servFd, (struct sockaddr *)&_servAddr, sizeof(_servAddr)) ==
+			-1)
 			throw std::runtime_error("bind function fail");
-	
+
 		if (listen(_servFd, MAX_CLIENT) == -1)
 			throw std::runtime_error("listen function fail");
 	}
-	catch (const std::runtime_error& e) {
+	catch (const std::runtime_error &e) {
 		if (_servFd != -1)
 			close(_servFd);
 		std::cerr << "Error: " << e.what() << std::endl;
@@ -29,7 +30,7 @@ bool Server::acceptClient() {
 
 	struct sockaddr_in clientAddr;
 	socklen_t clientLen = sizeof(clientAddr);
-	int clientFd = accept(_servFd, (struct sockaddr*)&clientAddr, &clientLen);
+	int clientFd = accept(_servFd, (struct sockaddr *)&clientAddr, &clientLen);
 	if (clientFd == -1)
 		return (false);
 
@@ -49,14 +50,15 @@ void Server::recvClient(int i) {
 
 	count = recv(clientFd, buf, BUF_SIZE, 0);
 
-	if (count <=- 0) {
+	if (count <= -0) {
 		if (count == 0)
-			std::cout << "Client(fd: " << clientFd << ") is disconnected" << std::endl;
+			std::cout << "Client(fd: " << clientFd << ") is disconnected"
+					  << std::endl;
 		else
 			std::cout << "Error: recv function fail" << std::endl;
 		close(clientFd);
 		_pollFds.erase(_pollFds.begin() + i);
-		return ;
+		return;
 	}
 
 	_lines[i] += buf;
@@ -81,7 +83,8 @@ void Server::startServ() {
 	while (poll(&_pollFds[0], _pollFds.size(), -1)) {
 		if (_pollFds[0].revents & POLLIN)
 			if (!this->acceptClient())
-				std::cout << "Error: client socket does not generate" << std::endl; // 에러 처리
+				std::cout << "Error: client socket does not generate"
+						  << std::endl; // 에러 처리
 		for (int i = 1; i < (int)(_pollFds.size()); i++) {
 			if (_pollFds[i].revents & (POLLIN | POLLHUP)) {
 				std::cout << "i: " << i << std::endl;
@@ -109,7 +112,8 @@ std::vector<std::string> splitMsg(std::string line) {
 	if (!colon)
 		command.push_back(line.substr(start));
 
-	for (std::vector<std::string>::iterator it = command.begin(); ++it != command.end();) {
+	for (std::vector<std::string>::iterator it = command.begin();
+		 ++it != command.end();) {
 		if ((*it)[0] == ':') {
 			(*it).erase(0, 1);
 			break;
@@ -190,10 +194,10 @@ void Server::executeCommand(int fd, std::vector<std::string> cmds) {
 				cmdTopic(fd, cmds);
 			else if (cmdType == "mode" || cmdType == "MODE")
 				cmdMode(fd, cmds);
-			else if (cmdType == "quit" || cmdType == "QUIT")
-				cmdQuit(fd, cmds);
-			else if (cmdType == "ping" || cmdType == "PING")
-				cmdPing(fd, cmds);
+//			else if (cmdType == "quit" || cmdType == "QUIT")
+//				cmdQuit(fd, cmds);
+//			else if (cmdType == "ping" || cmdType == "PING")
+//				cmdPing(fd, cmds);
 		}
 	}
 
@@ -211,9 +215,9 @@ void Server::sendMsg(int fd, std::string msg) {
 void
 Server::sendMsgToChannel(int fd, std::string channelName, std::string msg) {
 	// 채널에 메시지 전송
-	(void) fd;
-	(void) channelName;
-	(void) msg;
+	(void)fd;
+	(void)channelName;
+	(void)msg;
 
 }
 
@@ -263,7 +267,7 @@ void Server::cmdJoin(int fd, std::vector<std::string> cmds) {
 				_channels[cmds[1]].addClient(fd, &_clients[fd]);
 
 				// 클라이언트에 채널 추가
-				_clients[fd].addChannel(cmds[1]);
+				_clients[fd].addChannel(cmds[1], &_channels[cmds[1]]);
 
 				// 채널에 메시지 전송
 				send(fd, "JOIN :End of /NAMES list.\r\n", 25, 0);
@@ -280,7 +284,7 @@ void Server::cmdJoin(int fd, std::vector<std::string> cmds) {
 				channel.addClient(fd, &_clients[fd]);
 
 				// 클라이언트에 채널 추가
-				_clients[fd].addChannel(cmds[1]);
+				_clients[fd].addChannel(cmds[1], &_channels[cmds[1]]);
 
 			}
 		}
@@ -334,21 +338,20 @@ void Server::cmdPrivMsg(int fd, std::vector<std::string> cmds) {
 		} else {
 			// 수신자가 클라이언트인 경우
 			// 수신자가 존재하는 경우
-//			std::map<std::string, Client>::iterator it;
-//
-//			for (it = _clients.begin(); it != _clients.end(); ++it) {
-//				if (it->second.getNickName() == cmds[1]) {
-//					// 수신자에게 메시지 전송
-//					send(it->second.getClientFd(), cmds[2], cmds[2].length(),
-//						 0);
-//					break;
-//				}
-//			}
-//
-//			if (it == _clients.end()) {
-//				// 수신자가 존재하지 않는 경우
-//				send(fd, "401 PRIVMSG :No such nick/channel\r\n", 35, 0);
-//			}
+			std::map<int, Client>::iterator it;
+
+			for (it = _clients.begin(); it != _clients.end(); ++it) {
+				if (it->second.getNickName() == cmds[1]) {
+					// 수신자에게 메시지 전송
+					send(it->first, cmds[2].c_str(), cmds[2].length(), 0);
+					break;
+				}
+			}
+
+			if (it == _clients.end()) {
+				// 수신자가 존재하지 않는 경우
+				send(fd, "401 PRIVMSG :No such nick/channel\r\n", 35, 0);
+			}
 
 		}
 	}
@@ -480,3 +483,139 @@ void Server::cmdMode(int fd, std::vector<std::string> cmds) {
 		}
 	}
 }
+
+void Server::cmdTopic(int fd, std::vector<std::string> cmds) {
+	if (cmds.size() < 3)
+		send(fd, "461 TOPIC :Not enough parameters\r\n", 32, 0);
+	else {
+		// 채널이름이 #으로 시작하지 않는 경우
+		if (cmds[1][0] != '#')
+			send(fd, "403 TOPIC :No such channel\r\n", 28, 0);
+		else {
+			// 채널이름이 #으로 시작하는 경우
+			// 채널이 존재하는 경우
+			if (_channels.find(cmds[1]) != _channels.end()) {
+				// 토픽을 설정하는 경우
+				if (cmds[2] != "") {
+
+					if (_channels[cmds[1]].getIsTopicProtected()) {
+						// 토픽이 보호되는 경우
+						// 유저가 op인지 확인
+						if (_channels[cmds[1]].isClientOP(fd)) {
+							// 토픽 설정
+							_channels[cmds[1]].setTopic(cmds[2]);
+							send(fd, "TOPIC :End of /NAMES list.\r\n", 27, 0);
+						} else {
+							send(fd,
+								 "482 TOPIC :You're not channel operator\r\n",
+								 39, 0);
+						}
+					} else {
+						// 토픽 설정
+						_channels[cmds[1]].setTopic(cmds[2]);
+						send(fd, "TOPIC :End of /NAMES list.\r\n", 27, 0);
+					}
+				} else {
+					// 토픽을 해제하는 경우
+					_channels[cmds[1]].setTopic(cmds[2]);
+					// 토픽 전송
+					send(fd, "332 TOPIC :End of /NAMES list.\r\n", 27, 0);
+				}
+			} else {
+				// 채널이 존재하지 않는 경우
+				send(fd, "403 TOPIC :No such channel\r\n", 28, 0);
+			}
+		}
+	}
+}
+
+void Server::cmdKick(int fd, std::vector<std::string> cmds) {
+	if (cmds.size() < 3)
+		send(fd, "461 KICK :Not enough parameters\r\n", 31, 0);
+	else {
+		// 채널이름이 #으로 시작하지 않는 경우
+		if (cmds[1][0] != '#')
+			send(fd, "403 KICK :No such channel\r\n", 27, 0);
+		else {
+			// 채널이름이 #으로 시작하는 경우
+			// 채널이 존재하는 경우
+			if (_channels.find(cmds[1]) != _channels.end()) {
+				// 유저가 op인지 확인
+				if (_channels[cmds[1]].isClientOP(fd)) {
+					// 킥할 유저가 존재하는 경우
+					std::map<int, Client *>::iterator it;
+
+					for (it = _channels[cmds[1]].getClients().begin();
+						 it != _channels[cmds[1]].getClients().end(); ++it) {
+						if (it->second->getNickName() == cmds[2]) {
+							// 킥할 유저 제거
+							_channels[cmds[1]].removeClient(it->first);
+							// 킥 메시지 전송
+							send(fd, "KICK :End of /NAMES list.\r\n", 27, 0);
+							break;
+						}
+					}
+
+					if (it == _channels[cmds[1]].getClients().end()) {
+						// 킥할 유저가 존재하지 않는 경우
+						send(fd, "441 KICK :They aren't on that channel\r\n",
+							 40, 0);
+					}
+				} else {
+					send(fd, "482 KICK :You're not channel operator\r\n", 39,
+						 0);
+				}
+			} else {
+				// 채널이 존재하지 않는 경우
+				send(fd, "403 KICK :No such channel\r\n", 27, 0);
+			}
+		}
+	}
+}
+
+void Server::cmdInvite(int fd, std::vector<std::string> cmds) {
+	if (cmds.size() < 3)
+		send(fd, "461 INVITE :Not enough parameters\r\n", 34, 0);
+	else {
+		// 채널이름이 #으로 시작하지 않는 경우
+		if (cmds[1][0] != '#')
+			send(fd, "403 INVITE :No such channel\r\n", 28, 0);
+		else {
+			// 채널이름이 #으로 시작하는 경우
+			// 채널이 존재하는 경우
+			if (_channels.find(cmds[1]) != _channels.end()) {
+				// 초대전용 채널인지 확인
+				if (_channels[cmds[1]].getIsInviteOnly()) {
+					// 초대할 유저가 존재하는 경우
+					std::map<int, Client>::iterator it;
+
+					for (it = _clients.begin(); it != _clients.end(); ++it) {
+						if (it->second.getNickName() == cmds[2]) {
+							// 초대할 유저 추가
+							_channels[cmds[1]].addInviteClient(it->first);
+							// 초대 메시지 전송
+							send(fd, "INVITE :End of /NAMES list.\r\n", 28, 0);
+							break;
+						}
+					}
+
+					if (it == _clients.end()) {
+						// 초대할 유저가 존재하지 않는 경우
+						send(fd, "441 INVITE :They aren't on that channel\r\n",
+							 41, 0);
+
+					}
+				} else {
+					// 초대전용 채널이 아닌 경우
+					send(fd, "482 INVITE :Channel is not invite only\r\n", 41,
+						 0);
+
+				}
+			} else {
+				// 채널이 존재하지 않는 경우
+				send(fd, "403 INVITE :No such channel\r\n", 28, 0);
+			}
+		}
+	}
+}
+

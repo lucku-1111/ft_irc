@@ -3,6 +3,8 @@
 
 #include <string>
 #include "Define.hpp"
+#include "Channel.hpp"
+#include <map>
 
 enum ClientStatus {
 	NoPassword,
@@ -10,6 +12,8 @@ enum ClientStatus {
 	NoUsername,
 	LoggedIn
 };
+
+class Channel;
 
 class Client {
 private:
@@ -38,6 +42,9 @@ private:
 
 	// 클라이언트의 비밀번호
 	std::string _password;
+
+	// 클라이언트가 속한 채널
+	std::map<std::string, Channel *> _clientChannels;
 
 
 	///// 클라이언트의 명령어 수신 여부 /////
@@ -121,7 +128,7 @@ public:
 	void setIsUserSet(bool isUserSet);
 
 	// add channel to client
-	void addChannel(std::string channelName);
+	void addChannel(std::string channelName, Channel *channel);
 
 	// remove channel from client
 	void removeChannel(std::string channelName);
