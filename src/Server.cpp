@@ -1,6 +1,13 @@
 #include "../inc/Server.hpp"
 #include "../inc/msgs.hpp"
 
+void Server::sendAll(int fd, std::string msg) {
+    std::map<std::string, Channel *> chs = _clients[fd].getClientChannels();
+
+    for (std::map<std::string, Channel *>::iterator it = chs.begin(); it != chs.end(); it++) {
+        it->second->sendToAllClients(fd, msg);
+    }
+}
 
 void send_fd(int fd, std::string str) {
     int ret = send(fd, str.c_str(), str.size(), 0);
@@ -65,8 +72,10 @@ void Server::recvClient(int i) {
     count = recv(clientFd, buf, BUF_SIZE, 0);
 
     if (count <= 0) {
-        if (count == 0)
+        if (count == 0) {
             std::cerr << "Client(fd: " << clientFd << ") is disconnected" << std::endl;
+            cmdQuit(clientFd, i);
+        }
         else
             std::cerr << "Error: recv function fail" << std::endl;
         // close(clientFd);
@@ -208,7 +217,7 @@ void Server::executeCommand(int fd, std::vector<std::string> cmds, int idx) {
         else if (cmdType == "mode" || cmdType == "MODE")
             cmdMode(fd, cmds);
         else if (cmdType == "quit" || cmdType == "QUIT")
-            cmdQuit(fd, cmds, idx);
+            cmdQuit(fd, idx);
         else if (cmdType == "ping" || cmdType == "PING")
             cmdPing(fd, cmds);
     }
@@ -216,21 +225,21 @@ void Server::executeCommand(int fd, std::vector<std::string> cmds, int idx) {
 }
 
 ///// Send Functions /////
-void Server::sendMsg(int fd, std::string msg) {
-    // send 함수
-    int ret = send(fd, msg.c_str(), msg.length(), 0);
+// void Server::sendMsg(int fd, std::string msg) {
+//     // send 함수
+//     int ret = send(fd, msg.c_str(), msg.length(), 0);
 
-    if (ret == -1)
-        std::cerr << "send error : " << msg << std::endl;
-}
+//     if (ret == -1)
+//         std::cerr << "send error : " << msg << std::endl;
+// }
 
-void Server::sendMsgToChannel(int fd, std::string channelName, std::string msg) {
-    // 채널에 메시지 전송
-    (void) fd;
-    (void) channelName;
-    (void) msg;
+// void Server::sendMsgToChannel(int fd, std::string channelName, std::string msg) {
+//     // 채널에 메시지 전송
+//     (void) fd;
+//     (void) channelName;
+//     (void) msg;
 
-}
+// }
 
 ///// Command Functions /////
 void Server::cmdPass(int fd, std::vector<std::string> cmds) {
@@ -254,6 +263,7 @@ bool validateNick(std::string nick, std::map<int, Client> clients) {
     return (true);
 }
 
+// 
 void Server::cmdNick(int fd, std::vector<std::string> cmds) {
     if (cmds.size() < 2 && validateNick(cmds[1], _clients))
         send_fd(fd, RPL_461_NEEDMOREPARAMS(_clients[fd].getNickName(), "NICK"));
@@ -631,14 +641,8 @@ void Server::cmdPing(int fd, std::vector<std::string> cmds) {
     }
 }
 
-void Server::cmdQuit(int fd, std::vector<std::string> cmds, int i) {
-    std::map<std::string, Channel *> chs = _clients[fd].getClientChannels();
-
-    for (std::map<std::string, Channel *>::iterator it = chs.begin(); it != chs.end(); it++) {
-        it->second->sendToAllClients(fd, RPL_QUIT(_clients[fd].getNickName()));
-    }
-
-    (void) cmds;
+void Server::cmdQuit(int fd,  int i) {
+    sendAll(fd, RPL_QUIT(_clients[fd].getNickName()));
 
     _lines[i].clear();
     close(fd);

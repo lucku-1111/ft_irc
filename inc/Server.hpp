@@ -53,6 +53,8 @@ public:
 	///// Send Functions /////
 	void sendMsg(int fd, std::string msg);
 
+	void sendAll(int fd, std::string msg);
+
 	void sendMsgToChannel(std::string channelName, std::string msg);
 
 	///// Command Functions /////
@@ -78,7 +80,7 @@ public:
 
 	void cmdPing(int fd, std::vector<std::string> cmds);
 
-	void cmdQuit(int fd, std::vector<std::string> cmds, int i);
+	void cmdQuit(int fd, int i);
 
 	void sendMsgToChannel(int fd, std::string channelName, std::string msg);
 

@@ -8,8 +8,14 @@ bool checkPort(char* str) {
 	return (true);
 }
 
+bool checkPwd(std::string pwd) {
+	if (pwd[0] == '#' || pwd[0] == ':')
+		return (false);
+	return (true);
+}
+
 int main(int ac, char** av) {
-	if (ac != 3 || !checkPort(av[1])) {
+	if (ac != 3 || !checkPort(av[1]) || !checkPwd(av[2])) {
 		std::cout << "Invalid arguments" << std::endl;
 		return (1);
 	}
