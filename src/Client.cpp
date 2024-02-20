@@ -62,6 +62,10 @@ std::string Client::getServerName() {
 	return (_serverName);
 }
 
+std::string Client::getPassword() {
+	return (_password);
+}
+
 ///// Set data /////
 
 void Client::setClientFd(int fd) {
@@ -90,4 +94,29 @@ void Client::setHostName(std::string host) {
 
 void Client::setServerName(std::string server) {
 	_serverName = server;
+}
+
+void Client::setPassword(std::string password) {
+	_password = password;
+}
+
+void Client::setIsPasswordSet(bool isPasswordSet) {
+	_isPasswordSet = isPasswordSet;
+}
+
+void Client::setIsNickSet(bool isNickSet) {
+	_isNickSet = isNickSet;
+}
+
+void Client::setIsUserSet(bool isUserSet) {
+	_isUserSet = isUserSet;
+}
+
+void Client::addChannel(std::string channelName, Channel *channel) {
+	_clientChannels.insert(
+			std::pair<std::string, Channel *>(channelName, channel));
+}
+
+void Client::removeChannel(std::string channelName) {
+	_clientChannels.erase(channelName);
 }

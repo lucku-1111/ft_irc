@@ -12,9 +12,13 @@
 #include <vector>
 #include "Client.hpp"
 #include "Channel.hpp"
+#include <map>
 
 #define BUF_SIZE 512
 #define MAX_CLIENT 100
+
+class Client;
+class Channel;
 
 class Server {
 private:
@@ -64,19 +68,17 @@ public:
 
 	void cmdPrivMsg(int fd, std::vector<std::string> cmds);
 
+	void cmdMode(int fd, std::vector<std::string> cmds);
+
 	void cmdTopic(int fd, std::vector<std::string> cmds);
 
 	void cmdInvite(int fd, std::vector<std::string> cmds);
 
 	void cmdKick(int fd, std::vector<std::string> cmds);
 
-	void cmdMode(int fd, std::vector<std::string> cmds);
-
-	void cmdPing(int fd, std::vector<std::string> cmds);
-
-	void cmdQuit(int fd, std::vector<std::string> cmds);
-
-	int getClinetFdbyNick(std::string nick);
+//	void cmdPing(int fd, std::vector<std::string> cmds);
+//
+//	void cmdQuit(int fd, std::vector<std::string> cmds);
 
 	void sendMsgToChannel(int fd, std::string channelName, std::string msg);
 

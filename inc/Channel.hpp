@@ -1,7 +1,9 @@
 #ifndef CHANNEL_H
 #define CHANNEL_H
 
+#include "Server.hpp"
 #include "Client.hpp"
+#include "Define.hpp"
 #include <map>
 #include <vector>
 
@@ -65,6 +67,14 @@ public:
 
 	std::string getTopic();
 
+	bool getIsPasswordSet();
+
+	bool getIsInviteOnly();
+
+	bool getIsTopicProtected();
+
+	bool getIsUserLimitSet();
+
 	int getUserLimit();
 
 	///// Setter /////
@@ -84,11 +94,18 @@ public:
 
 	void setIsUserLimitSet(bool isUserLimitSet);
 
+	///// Method /////
 	// 채널에 클라이언트를 추가하는 메서드
 	void addClient(int fd, Client *client);
 
 	// 채널에서 클라이언트를 제거하는 메서드
 	void removeClient(int fd);
+
+	// 채널에서 OP를 추가하는 메서드
+	void addOperator(int fd);
+
+	// 채널에 초대된 클라이언트를 추가하는 메서드
+	void addInviteClient(int fd);
 
 	// 자신을 제외한 모든 클라이언트에게 메시지를 보내는 메서드
 	void sendToAllClients(int fd, std::string message);
@@ -96,13 +113,14 @@ public:
 	// 클라이언트가 op인지 확인하는 메서드
 	bool isClientOP(int fd);
 
+	// 클라이언트가 채널에 초대된 클라이언트인지 확인하는 메서드
+	bool isClientInvited(int fd);
+
 	// OP리스트에 클라이언트 추가
 	void addClientToOPList(int fd);
 
 	// OP리스트에서 클라이언트 제거
 	void removeClientFromOPList(int fd);
-
-
 
 
 };
