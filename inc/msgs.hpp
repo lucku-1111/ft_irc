@@ -60,7 +60,7 @@ const static std::string version = "1.0.0";
 #define RPL_PONG(client) (colonServerName + "PONG " + serverName + " " + colonServerName)
 
 // Response to Quit
-#define RPL_QUIT(client) (colonServerName + client + " QUIT " + serverName + "\r\n")
+#define RPL_QUIT(client) (colonServerName + client + " QUIT: " + serverName + "\r\n")
 
 // Response to Join
 #define RPL_JOIN(nick, hostname, servername, channel) ":" + nick + "!" + hostname + "@" + servername + " JOIN " + channel + "\r\n"
