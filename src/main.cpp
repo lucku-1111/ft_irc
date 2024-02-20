@@ -1,6 +1,6 @@
 #include "../inc/Server.hpp"
 
-bool check_port(char* str) {
+bool checkPort(char* str) {
 	int port = atoi(str);
 
 	if (port < 1024 || port > 65535)
@@ -9,7 +9,7 @@ bool check_port(char* str) {
 }
 
 int main(int ac, char** av) {
-	if (ac != 3 || !check_port(av[1])) {
+	if (ac != 3 || !checkPort(av[1])) {
 		std::cout << "Invalid arguments" << std::endl;
 		return (1);
 	}

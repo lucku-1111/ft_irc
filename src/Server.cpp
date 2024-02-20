@@ -26,21 +26,24 @@ Server::Server(int port, std::string pwd) : _pwd(pwd) {
 	_pollFds.push_back((struct pollfd){_servFd, POLLIN, 0});
 }
 
-bool Server::acceptClient() {
+void Server::acceptClient() {
+	if (_pollFds.size() > 101) {
+		std::cerr << "Error: connection limit exceeded" << std::endl;
+		return ;
+	}
 
 	struct sockaddr_in clientAddr;
 	socklen_t clientLen = sizeof(clientAddr);
-	int clientFd = accept(_servFd, (struct sockaddr *)&clientAddr, &clientLen);
-	if (clientFd == -1)
-		return (false);
-
+	int clientFd = accept(_servFd, (struct sockaddr*)&clientAddr, &clientLen);
+	if (clientFd == -1) {
+		std::cerr << "Error: client socket does not generate" << std::endl;
+		return ;
+	}
 	_pollFds.push_back((struct pollfd){clientFd, POLLIN | POLLHUP, 0});
 	_pollFds[0].revents = 0;
 	fcntl(clientFd, F_SETFL, O_NONBLOCK);
 
 	_clients[clientFd] = Client(clientFd);
-
-	return (true);
 }
 
 void Server::recvClient(int i) {
@@ -52,10 +55,9 @@ void Server::recvClient(int i) {
 
 	if (count <= -0) {
 		if (count == 0)
-			std::cout << "Client(fd: " << clientFd << ") is disconnected"
-					  << std::endl;
+			std::cerr << "Client(fd: " << clientFd << ") is disconnected" << std::endl;
 		else
-			std::cout << "Error: recv function fail" << std::endl;
+			std::cerr << "Error: recv function fail" << std::endl;
 		close(clientFd);
 		_pollFds.erase(_pollFds.begin() + i);
 		return;
@@ -66,13 +68,13 @@ void Server::recvClient(int i) {
 
 	while ((pos = _lines[i].find("\r\n")) != std::string::npos) {
 		std::string line = _lines[i].substr(0, pos);
-		std::vector<std::string> command = splitMsg(line);
+		std::vector<std::string> cmds = splitMsg(line);
 
 		std::cout << "---- command ----\n" << line << std::endl;
 
-		for (int j = 0; j < (int)(command.size()); j++)
-			std::cout << "msg[" << j << "]: " << command[j] << std::endl;
-		// execCommand(clientFd, command);
+		for (int j = 0; j < (int)(cmds.size()); j++)
+			std::cout << "msg[" << j << "]: " << cmds[j] << std::endl;
+		executeCommand(clientFd, cmds);
 		_lines[i].erase(0, pos + 2);
 	}
 }
@@ -82,9 +84,7 @@ void Server::startServ() {
 
 	while (poll(&_pollFds[0], _pollFds.size(), -1)) {
 		if (_pollFds[0].revents & POLLIN)
-			if (!this->acceptClient())
-				std::cout << "Error: client socket does not generate"
-						  << std::endl; // 에러 처리
+			this->acceptClient();
 		for (int i = 1; i < (int)(_pollFds.size()); i++) {
 			if (_pollFds[i].revents & (POLLIN | POLLHUP)) {
 				std::cout << "i: " << i << std::endl;

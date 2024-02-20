@@ -5,6 +5,7 @@
 #include "Client.hpp"
 #include "Define.hpp"
 #include <map>
+#include <vector>
 
 class Client;
 
