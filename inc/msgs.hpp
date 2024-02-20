@@ -33,9 +33,14 @@ const static std::string version = "1.0.0";
 // Response to already registered client
 #define RPL_462_ALREADYREGISTRED(client, cmd) (colonServerName + "462 " + client +" " + cmd + " :Unauthorized command (already registered)\r\n")
 
-
+// Response to JOIN
 #define RPL_JOIN(nick, hostname, servername, channel) ":" + nick + "!" + hostname + "@" + servername + " JOIN " + channel + "\r\n"
 
+// Response to PART
+#define RPL_PART(nick, hostname, servername, channel) ":" + nick + "!" + hostname + "@" + servername + " PART " + channel + "\r\n"
+
+// Response to pivate message
+#define RPL_PRIVMSG(nick, user, servername, channel, msg) ":" + nick + "!" + user + "@" + servername + " PRIVMSG " + channel + " " + msg + "\r\n"
 
 // Response to AWAY
 #define RPL_301_AWAY(client, nick, message) (colonServerName + "301 " + client + " " + nick + ":" + message + "\r\n")
@@ -54,8 +59,13 @@ const static std::string version = "1.0.0";
 // Pong message
 #define RPL_PONG(client) (colonServerName + "PONG " + serverName + " " + colonServerName)
 
+// Response to Quit
 #define RPL_QUIT(client) (colonServerName + client + " QUIT " + serverName + "\r\n")
 
+// Response to Join
 #define RPL_JOIN(nick, hostname, servername, channel) ":" + nick + "!" + hostname + "@" + servername + " JOIN " + channel + "\r\n"
+
+// Response to No such channel
+#define RPL_403_NOSUCHCHANNEL(client, channel) (colonServerName + "403 " + client + " " + channel + " :No such channel\r\n")
 
 #endif

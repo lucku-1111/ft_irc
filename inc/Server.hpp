@@ -51,13 +51,10 @@ public:
 	void executeCommand(int fd, std::vector<std::string> cmds, int idx);
 
 	///// Send Functions /////
-	void sendMsg(int fd, std::string msg);
 
 	void sendAll(int fd, std::string msg);
 
-	void sendMsgToChannel(std::string channelName, std::string msg);
-
-	///// Command Functions /////
+    ///// Command Functions /////
 	void cmdPass(int fd, std::vector<std::string> cmds);
 
 	void cmdNick(int fd, std::vector<std::string> cmds);
@@ -82,7 +79,6 @@ public:
 
 	void cmdQuit(int fd, int i);
 
-	void sendMsgToChannel(int fd, std::string channelName, std::string msg);
 
 };
 

@@ -75,7 +75,7 @@ void Server::recvClient(int i) {
         if (count == 0) {
             std::cerr << "Client(fd: " << clientFd << ") is disconnected" << std::endl;
             cmdQuit(clientFd, i);
-            return ;
+            return;
         }
         std::cerr << "Error: recv function fail" << std::endl;
         _lines[i].clear();
@@ -229,22 +229,6 @@ void Server::executeCommand(int fd, std::vector<std::string> cmds, int idx) {
 
 }
 
-///// Send Functions /////
-// void Server::sendMsg(int fd, std::string msg) {
-//     // send 함수
-//     int ret = send(fd, msg.c_str(), msg.length(), 0);
-
-//     if (ret == -1)
-//         std::cerr << "send error : " << msg << std::endl;
-// }
-
-// void Server::sendMsgToChannel(int fd, std::string channelName, std::string msg) {
-//     // 채널에 메시지 전송
-//     (void) fd;
-//     (void) channelName;
-//     (void) msg;
-
-// }
 
 ///// Command Functions /////
 void Server::cmdPass(int fd, std::vector<std::string> cmds) {
@@ -268,7 +252,6 @@ bool validateNick(std::string nick, std::map<int, Client> clients) {
     return (true);
 }
 
-// 
 void Server::cmdNick(int fd, std::vector<std::string> cmds) {
     if (cmds.size() < 2 && validateNick(cmds[1], _clients))
         send_fd(fd, RPL_461_NEEDMOREPARAMS(_clients[fd].getNickName(), "NICK"));
@@ -283,7 +266,8 @@ void Server::cmdUser(int fd, std::vector<std::string> cmds) {
         send_fd(fd, RPL_461_NEEDMOREPARAMS(_clients[fd].getNickName(), "USER"));
     else {
         _clients[fd].setUserName(cmds[1]);
-        // 호스트네임과 서버네임은 서버가 맘대로 설정??
+        _clients[fd].setHostName(cmds[2]);
+        _clients[fd].setServerName(cmds[3]);
         _clients[fd].setRealName(cmds[4]);
         _clients[fd].setIsUserSet(true);
     }
@@ -295,7 +279,7 @@ void Server::cmdJoin(int fd, std::vector<std::string> cmds) {
     else {
         // 채널이름이 #으로 시작하지 않는 경우
         if (cmds[1][0] != '#')
-            send(fd, "403 JOIN :No such channel\r\n", 27, 0);
+            send_fd(fd, RPL_403_NOSUCHCHANNEL(_clients[fd].getNickName(), cmds[1]));
         else {
             // 채널이름이 #으로 시작하는 경우
             // 채널이름이 이미 존재하는 경우
@@ -323,7 +307,7 @@ void Server::cmdJoin(int fd, std::vector<std::string> cmds) {
 
             }
             // 채널에 메시지 전송
-            send_fd(fd, RPL_JOIN(_clients[fd].getNickName(), _clients[fd].getHostName(), _clients[fd].getServerName(), cmds[1]));
+            _channels[cmds[1]].sendToAllClients(fd, RPL_JOIN(_clients[fd].getNickName(), _clients[fd].getHostName(), _clients[fd].getServerName(), cmds[1]));
         }
     }
 }
@@ -334,7 +318,7 @@ void Server::cmdPart(int fd, std::vector<std::string> cmds) {
     else {
         // 채널이름이 #으로 시작하지 않는 경우
         if (cmds[1][0] != '#')
-            send(fd, "403 PART :No such channel\r\n", 27, 0);
+            send_fd(fd, RPL_403_NOSUCHCHANNEL(_clients[fd].getNickName(), cmds[1]));
         else {
             // 채널이름이 #으로 시작하는 경우
             // 채널이름이 존재하는 경우
@@ -347,11 +331,12 @@ void Server::cmdPart(int fd, std::vector<std::string> cmds) {
                 _clients[fd].removeChannel(cmds[1]);
 
                 // 채널에 메시지 전송
-                _channels[cmds[1]].sendToAllClients(fd, "PART :End of /NAMES list.\r\n");
+                _channels[cmds[1]].sendToAllClients(fd,
+                                                    RPL_PART(_clients[fd].getNickName(), _clients[fd].getHostName(), _clients[fd].getServerName(), cmds[1]));
             } else {
 
                 // 채널이름이 존재하지 않는 경우
-                send(fd, "403 PART :No such channel\r\n", 27, 0);
+                send_fd(fd, RPL_403_NOSUCHCHANNEL(_clients[fd].getNickName(), cmds[1]));
             }
         }
     }
@@ -366,10 +351,12 @@ void Server::cmdPrivMsg(int fd, std::vector<std::string> cmds) {
             // 채널이 존재하는 경우
             if (_channels.find(cmds[1]) != _channels.end()) {
                 // 채널에 메시지 전송
-                _channels[cmds[1]].sendToAllClients(fd, cmds[2]);
+                _channels[cmds[1]].sendToAllClients(fd,
+                                                    RPL_PRIVMSG(_clients[fd].getNickName(), _clients[fd].getUserName(), _clients[fd].getServerName(), cmds[1],
+                                                                cmds[2]));
             } else {
                 // 채널이 존재하지 않는 경우
-                send(fd, "403 PRIVMSG :No such channel\r\n", 31, 0);
+                send_fd(fd, RPL_403_NOSUCHCHANNEL(_clients[fd].getNickName(), cmds[1]));
             }
         } else {
             // 수신자가 클라이언트인 경우
@@ -379,7 +366,7 @@ void Server::cmdPrivMsg(int fd, std::vector<std::string> cmds) {
             for (it = _clients.begin(); it != _clients.end(); ++it) {
                 if (it->second.getNickName() == cmds[1]) {
                     // 수신자에게 메시지 전송
-                    send(it->first, cmds[2].c_str(), cmds[2].length(), 0);
+                    send_fd(it->first, RPL_PRIVMSG(_clients[fd].getNickName(), _clients[fd].getUserName(), _clients[fd].getServerName(), cmds[1], cmds[2]));
                     break;
                 }
             }
@@ -516,7 +503,7 @@ void Server::cmdTopic(int fd, std::vector<std::string> cmds) {
     else {
         // 채널이름이 #으로 시작하지 않는 경우
         if (cmds[1][0] != '#')
-            send(fd, "403 TOPIC :No such channel\r\n", 28, 0);
+            send_fd(fd, RPL_403_NOSUCHCHANNEL(_clients[fd].getNickName(), cmds[1]));
         else {
             // 채널이름이 #으로 시작하는 경우
             // 채널이 존재하는 경우
@@ -547,7 +534,7 @@ void Server::cmdTopic(int fd, std::vector<std::string> cmds) {
                 }
             } else {
                 // 채널이 존재하지 않는 경우
-                send(fd, "403 TOPIC :No such channel\r\n", 28, 0);
+                send_fd(fd, RPL_403_NOSUCHCHANNEL(_clients[fd].getNickName(), cmds[1]));
             }
         }
     }
@@ -559,7 +546,7 @@ void Server::cmdKick(int fd, std::vector<std::string> cmds) {
     else {
         // 채널이름이 #으로 시작하지 않는 경우
         if (cmds[1][0] != '#')
-            send(fd, "403 KICK :No such channel\r\n", 27, 0);
+            send_fd(fd, RPL_403_NOSUCHCHANNEL(_clients[fd].getNickName(), cmds[1]));
         else {
             // 채널이름이 #으로 시작하는 경우
             // 채널이 존재하는 경우
@@ -588,7 +575,7 @@ void Server::cmdKick(int fd, std::vector<std::string> cmds) {
                 }
             } else {
                 // 채널이 존재하지 않는 경우
-                send(fd, "403 KICK :No such channel\r\n", 27, 0);
+                send_fd(fd, RPL_403_NOSUCHCHANNEL(_clients[fd].getNickName(), cmds[1]));
             }
         }
     }
@@ -600,7 +587,7 @@ void Server::cmdInvite(int fd, std::vector<std::string> cmds) {
     else {
         // 채널이름이 #으로 시작하지 않는 경우
         if (cmds[1][0] != '#')
-            send(fd, "403 INVITE :No such channel\r\n", 28, 0);
+            send_fd(fd, RPL_403_NOSUCHCHANNEL(_clients[fd].getNickName(), cmds[1]));
         else {
             // 채널이름이 #으로 시작하는 경우
             // 채널이 존재하는 경우
@@ -632,7 +619,7 @@ void Server::cmdInvite(int fd, std::vector<std::string> cmds) {
                 }
             } else {
                 // 채널이 존재하지 않는 경우
-                send(fd, "403 INVITE :No such channel\r\n", 28, 0);
+                send_fd(fd, RPL_403_NOSUCHCHANNEL(_clients[fd].getNickName(), cmds[1]));
             }
         }
     }
@@ -646,7 +633,7 @@ void Server::cmdPing(int fd, std::vector<std::string> cmds) {
     }
 }
 
-void Server::cmdQuit(int fd,  int i) {
+void Server::cmdQuit(int fd, int i) {
     sendAll(fd, RPL_QUIT(_clients[fd].getNickName()));
 
     _lines[i].clear();
