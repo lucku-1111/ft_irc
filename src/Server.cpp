@@ -285,13 +285,22 @@ void Server::cmdPrivMsg(int fd, std::vector<std::string> cmds) {
 		} else {
 			// 수신자가 클라이언트인 경우
 			// 수신자가 존재하는 경우
-			if (_clients.find(cmds[1]) != _clients.end()) {
-				// 수신자에게 메시지 전송
-				send(_clients[cmds[1]].getFd(), cmds[2], cmds[2].length(), 0);
-			} else {
+			std::map<std::string, Client>::iterator it;
+
+			for (it = _clients.begin(); it != _clients.end(); ++it) {
+				if (it->second.getNickName() == cmds[1]) {
+					// 수신자에게 메시지 전송
+					send(it->second.getClientFd(), cmds[2], cmds[2].length(),
+						 0);
+					break;
+				}
+			}
+
+			if (it == _clients.end()) {
 				// 수신자가 존재하지 않는 경우
 				send(fd, "401 PRIVMSG :No such nick/channel\r\n", 35, 0);
 			}
+
 		}
 	}
 }
