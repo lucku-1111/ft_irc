@@ -230,8 +230,20 @@ void Server::cmdPass(int fd, std::vector<std::string> cmds) {
 	}
 }
 
+bool validateNick(std::string nick, std::map<int, Client> clients) {
+	if (nick[0] == '#' || nick[0] == ':')
+		return (false);
+
+	for (std::map<int, Client>::iterator it = clients.begin(); it != clients.end(); it++) {
+		if (nick == it->second.getNickName())
+			return (false);
+	}
+
+	return (true);
+}
+
 void Server::cmdNick(int fd, std::vector<std::string> cmds) {
-	if (cmds.size() < 2)
+	if (cmds.size() < 2 && validateNick(cmds[1], _clients))
 		send(fd, "461 NICK :Not enough parameters\r\n", 31, 0);
 	else {
 		_clients[fd].setNickName(cmds[1]);
