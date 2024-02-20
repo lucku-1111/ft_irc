@@ -10,8 +10,6 @@
 #include <cstring>
 #include <iostream>
 #include <vector>
-#include <map>
-
 #include "Client.hpp"
 #include "Channel.hpp"
 
@@ -43,7 +41,7 @@ public:
 
 	bool acceptClient();
 
-	bool recvClient(int i);
+	void recvClient(int i);
 
 	///// Command Execution /////
 	void executeCommand(int fd, std::vector<std::string> cmds);
@@ -72,7 +70,6 @@ public:
 
 	void cmdKick(int fd, std::vector<std::string> cmds);
 
-
 	void cmdMode(int fd, std::vector<std::string> cmds);
 
 	void cmdPing(int fd, std::vector<std::string> cmds);
@@ -82,5 +79,7 @@ public:
 	int getClinetFdbyNick(std::string nick);
 
 };
+
+std::vector<std::string> splitMsg(std::string line);
 
 #endif
