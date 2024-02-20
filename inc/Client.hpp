@@ -4,16 +4,128 @@
 #include <string>
 #include "Define.hpp"
 
+enum ClientStatus {
+	NoPassword,
+	NoNickname,
+	NoUsername,
+	LoggedIn
+};
+
 class Client {
-	private:
-		std::string _nickname;
-		std::string _hostname;
-		std::string _servname;
-		std::string _realname;
-		int _clientFd;
-	public:
-		Client(int fd);
-		int getClientFd();
+private:
+	///// 클라이언트 데이터 /////
+
+	// 클라이언트의 파일 디스크립터
+	int _clientFd;
+
+	// 클라이언트의 상태
+	ClientStatus _status;
+
+	// 클라이언트의 닉네임
+	std::string _nickName;
+
+	// 클라이언트의 유저네임
+	std::string _userName;
+
+	// 클라이언트의 호스트네임
+	std::string _hostName;
+
+	// 클라이언트의 리얼네임
+	std::string _realName;
+
+	// 클라이언트의 서버네임
+	std::string _serverName;
+
+	// 클라이언트의 비밀번호
+	std::string _password;
+
+
+	///// 클라이언트의 명령어 수신 여부 /////
+	// PASS 명령어가 수신되었는지 여부
+	bool _isPasswordSet;
+
+	// NICK 명령어가 수신되었는지 여부
+	bool _isNickSet;
+
+	// USER 명령어가 수신되었는지 여부
+	bool _isUserSet;
+
+
+public:
+
+	///// Constructor & Destructor /////
+	Client();
+
+	~Client();
+
+	Client(int fd);
+
+	///// Getter /////
+
+	// get client's file descriptor
+	int getClientFd();
+
+	// get client's status
+	ClientStatus getStatus();
+
+	// get client's nickname
+	std::string getNickName();
+
+	// get client's username
+	std::string getUserName();
+
+	// get client's realname
+	std::string getRealName();
+
+	// get client's hostname
+	std::string getHostName();
+
+	// get client's servername
+	std::string getServerName();
+
+	// get client's password
+	std::string getPassword();
+
+	///// Setter /////
+	// set client's file descriptor
+	void setClientFd(int fd);
+
+	// set client's status
+	void setStatus(ClientStatus status);
+
+	// set client's nickname
+	void setNickName(std::string nickName);
+
+	// set client's username
+	void setUserName(std::string userName);
+
+	// set client's realname
+	void setRealName(std::string realName);
+
+	// set client's hostname
+	void setHostName(std::string hostName);
+
+	// set client's servername
+	void setServerName(std::string serverName);
+
+	// set client's password
+	void setPassword(std::string password);
+
+	// set PASS command received
+	void setIsPasswordSet(bool isPasswordSet);
+
+	// set NICK command received
+	void setIsNickSet(bool isNickSet);
+
+	// set USER command received
+	void setIsUserSet(bool isUserSet);
+
+	// add channel to client
+	void addChannel(std::string channelName);
+
+	// remove channel from client
+	void removeChannel(std::string channelName);
+
 };
 
 #endif
