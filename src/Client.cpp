@@ -5,7 +5,7 @@
 Client::Client() {
 	_clientFd = -1;
 	_clientFd = -1;
-	ClientStatus _status = ClientStatus::NoPassword;
+	_status = NoPassword;
 	_nickName = "*";
 	_userName = "*";
 	_hostName = "*";
@@ -18,7 +18,7 @@ Client::~Client() {
 
 Client::Client(int fd) : _clientFd(fd) {
 	_clientFd = fd;
-	ClientStatus _status = ClientStatus::NoPassword;
+	_status = NoPassword;
 	_nickName = "*";
 	_userName = "*";
 	_hostName = "*";
@@ -34,12 +34,12 @@ int Client::getClientFd() {
 
 ClientStatus Client::getStatus() {
 	if (!_isPasswordSet)
-		return (ClientStatus::NoPassword);
+		return (NoPassword);
 	if (!_isNickSet)
-		return (ClientStatus::NoNickname);
+		return (NoNickname);
 	if (!_isUserSet)
-		return (ClientStatus::NoUsername);
-	return (ClientStatus::LoggedIn);
+		return (NoUsername);
+	return (LoggedIn);
 }
 
 std::string Client::getNickName() {

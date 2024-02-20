@@ -4,7 +4,7 @@
 #include <string>
 #include "Define.hpp"
 
-enum class ClientStatus {
+enum ClientStatus {
 	NoPassword,
 	NoNickname,
 	NoUsername,

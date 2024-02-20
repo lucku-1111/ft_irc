@@ -78,6 +78,8 @@ public:
 
 	int getClinetFdbyNick(std::string nick);
 
+	void sendMsgToChannel(int fd, std::string channelName, std::string msg);
+
 };
 
 std::vector<std::string> splitMsg(std::string line);

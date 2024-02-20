@@ -21,6 +21,7 @@ Server::Server(int port, std::string pwd) : _pwd(pwd) {
 		std::cerr << "Error: " << e.what() << std::endl;
 		exit(1);
 	}
+
 	_pollFds.push_back((struct pollfd){_servFd, POLLIN, 0});
 }
 
@@ -36,7 +37,7 @@ bool Server::acceptClient() {
 	_pollFds[0].revents = 0;
 	fcntl(clientFd, F_SETFL, O_NONBLOCK);
 
-	_clients.push_back(Client(clientFd));
+	_clients[clientFd] = Client(clientFd);
 
 	return (true);
 }
@@ -132,7 +133,7 @@ void Server::executeCommand(int fd, std::vector<std::string> cmds) {
 
 	while (1) {
 		// 클라이언트의 상태에 따라 명령을 처리
-		if (_clients[fd].getStatus() == ClientStatus::NoPassword) {
+		if (_clients[fd].getStatus() == NoPassword) {
 			// 비밀번호가 없는 상태에서 pass 명령어인 경우
 			if (cmdType == "pass" || cmdType == "PASS")
 				// pass 명령어 처리
@@ -142,7 +143,7 @@ void Server::executeCommand(int fd, std::vector<std::string> cmds) {
 				send(fd,
 					 "CheckIn cmdType must be in order : |PASS| -> |NICK| -> |USER| \r\n",
 					 61, 0);
-		} else if (_clients[fd].getStatus() == ClientStatus::NoNickname) {
+		} else if (_clients[fd].getStatus() == NoNickname) {
 			// 비밀번호는 있고 닉네임이 없는 상태에서 pass, nick 명령어인 경우
 			if (cmdType == "pass" || cmdType == "PASS")
 				// pass 명령어 처리 : pass는 마지막에 들어온 pass 기준으로 저장
@@ -155,7 +156,7 @@ void Server::executeCommand(int fd, std::vector<std::string> cmds) {
 				send(fd,
 					 "CheckIn cmdType must be in order : |PASS| -> |NICK| -> |USER| \r\n",
 					 61, 0);
-		} else if (_clients[fd].getStatus() == ClientStatus::NoUsername) {
+		} else if (_clients[fd].getStatus() == NoUsername) {
 			// 유저네임이 없는 상태에서 pass, nick, user 명령어인 경우
 			if (cmdType == "pass" || cmdType == "PASS")
 				cmdPass(fd, cmds);
@@ -167,7 +168,7 @@ void Server::executeCommand(int fd, std::vector<std::string> cmds) {
 				send(fd, "001 :Welcome to the Internet Relay Network\r\n", 42,
 					 0);
 			}
-		} else if (_clients[fd].getStatus() == ClientStatus::LoggedIn) {
+		} else if (_clients[fd].getStatus() == LoggedIn) {
 			// 로그인 상태에서 명령어 처리
 			if (cmdType == "pass" || cmdType == "PASS")
 				send(fd, "462 PASS :You may not reregister\r\n", 33, 0);
@@ -210,6 +211,10 @@ void Server::sendMsg(int fd, std::string msg) {
 void
 Server::sendMsgToChannel(int fd, std::string channelName, std::string msg) {
 	// 채널에 메시지 전송
+	(void) fd;
+	(void) channelName;
+	(void) msg;
+
 }
 
 ///// Command Functions /////
@@ -329,21 +334,21 @@ void Server::cmdPrivMsg(int fd, std::vector<std::string> cmds) {
 		} else {
 			// 수신자가 클라이언트인 경우
 			// 수신자가 존재하는 경우
-			std::map<std::string, Client>::iterator it;
-
-			for (it = _clients.begin(); it != _clients.end(); ++it) {
-				if (it->second.getNickName() == cmds[1]) {
-					// 수신자에게 메시지 전송
-					send(it->second.getClientFd(), cmds[2], cmds[2].length(),
-						 0);
-					break;
-				}
-			}
-
-			if (it == _clients.end()) {
-				// 수신자가 존재하지 않는 경우
-				send(fd, "401 PRIVMSG :No such nick/channel\r\n", 35, 0);
-			}
+//			std::map<std::string, Client>::iterator it;
+//
+//			for (it = _clients.begin(); it != _clients.end(); ++it) {
+//				if (it->second.getNickName() == cmds[1]) {
+//					// 수신자에게 메시지 전송
+//					send(it->second.getClientFd(), cmds[2], cmds[2].length(),
+//						 0);
+//					break;
+//				}
+//			}
+//
+//			if (it == _clients.end()) {
+//				// 수신자가 존재하지 않는 경우
+//				send(fd, "401 PRIVMSG :No such nick/channel\r\n", 35, 0);
+//			}
 
 		}
 	}
