@@ -6,7 +6,7 @@ Channel::Channel() {
 	_channelName = "";
 	_password = "";
 	_topic = "";
-	_userLimit = 50;
+	_userLimit = 100;
 
 	_isPasswordSet = false;
 	_isInviteOnly = false;
@@ -18,7 +18,7 @@ Channel::Channel(std::string channelName) {
 	_channelName = channelName;
 	_password = "";
 	_topic = "";
-	_userLimit = 50;
+	_userLimit = 100;
 
 	_isPasswordSet = false;
 	_isInviteOnly = false;
@@ -128,6 +128,12 @@ void Channel::removeClient(int fd) {
 
 	// op권한이 있었다면 제거
 	removeClientFromOPList(fd);
+
+	// 초대된 클라이언트 목록에서 제거
+	std::vector<int>::iterator it2 = std::find(_inviteList.begin(), _inviteList.end(), fd);
+	if (it2 != _inviteList.end())
+		_inviteList.erase(it2);
+
 }
 
 void Channel::addClientToOPList(int fd) {

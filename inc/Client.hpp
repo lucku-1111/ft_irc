@@ -76,7 +76,7 @@ public:
 	ClientStatus getStatus();
 
 	// get client's nickname
-	std::string getNickName();
+	const std::string getNickName();
 
 	// get client's username
 	std::string getUserName();

@@ -11,6 +11,9 @@ Client::Client() {
 	_hostName = "*";
 	_realName = "*";
 	_serverName = "*";
+	_isPasswordSet = false;
+	_isNickSet = false;
+	_isUserSet = false;
 };
 
 Client::~Client() {
@@ -24,6 +27,9 @@ Client::Client(int fd) : _clientFd(fd) {
 	_hostName = "*";
 	_realName = "*";
 	_serverName = "*";
+	_isPasswordSet = false;
+	_isNickSet = false;
+	_isUserSet = false;
 }
 
 ///// Get data /////
@@ -42,7 +48,7 @@ ClientStatus Client::getStatus() {
 	return (LoggedIn);
 }
 
-std::string Client::getNickName() {
+const std::string Client::getNickName() {
 	return (_nickName);
 }
 

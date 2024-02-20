@@ -1,4 +1,8 @@
 #include "../inc/Server.hpp"
+#include "../inc/msgs.hpp"
+#include "../inc/Define.hpp"
+
+
 
 Server::Server(int port, std::string pwd) : _pwd(pwd) {
 	try {
@@ -29,15 +33,15 @@ Server::Server(int port, std::string pwd) : _pwd(pwd) {
 void Server::acceptClient() {
 	if (_pollFds.size() > 101) {
 		std::cerr << "Error: connection limit exceeded" << std::endl;
-		return ;
+		return;
 	}
 
 	struct sockaddr_in clientAddr;
 	socklen_t clientLen = sizeof(clientAddr);
-	int clientFd = accept(_servFd, (struct sockaddr*)&clientAddr, &clientLen);
+	int clientFd = accept(_servFd, (struct sockaddr *)&clientAddr, &clientLen);
 	if (clientFd == -1) {
 		std::cerr << "Error: client socket does not generate" << std::endl;
-		return ;
+		return;
 	}
 	_pollFds.push_back((struct pollfd){clientFd, POLLIN | POLLHUP, 0});
 	_pollFds[0].revents = 0;
@@ -55,7 +59,8 @@ void Server::recvClient(int i) {
 
 	if (count <= -0) {
 		if (count == 0)
-			std::cerr << "Client(fd: " << clientFd << ") is disconnected" << std::endl;
+			std::cerr << "Client(fd: " << clientFd << ") is disconnected"
+					  << std::endl;
 		else
 			std::cerr << "Error: recv function fail" << std::endl;
 		close(clientFd);
@@ -131,74 +136,78 @@ std::vector<std::string> splitMsg(std::string line) {
 ///// Command Execution /////
 
 void Server::executeCommand(int fd, std::vector<std::string> cmds) {
+
+	std::cout << "executeCommand : " << cmds[0] << std::endl;
+	std::cout << "fd : " << fd << std::endl;
+	std::cout << "status : " << _clients[fd].getStatus() << std::endl;
+
 	// 명령어 처리
 	// 명령어 벡터 string으로 받아오기
 	std::string cmdType = cmds[0];
 
-	while (1) {
-		// 클라이언트의 상태에 따라 명령을 처리
-		if (_clients[fd].getStatus() == NoPassword) {
-			// 비밀번호가 없는 상태에서 pass 명령어인 경우
-			if (cmdType == "pass" || cmdType == "PASS")
-				// pass 명령어 처리
-				cmdPass(fd, cmds);
-			else
-				// 비밀번호가 없는 상태에서 pass 명령어가 아닌 경우
-				send(fd,
-					 "CheckIn cmdType must be in order : |PASS| -> |NICK| -> |USER| \r\n",
-					 61, 0);
-		} else if (_clients[fd].getStatus() == NoNickname) {
-			// 비밀번호는 있고 닉네임이 없는 상태에서 pass, nick 명령어인 경우
-			if (cmdType == "pass" || cmdType == "PASS")
-				// pass 명령어 처리 : pass는 마지막에 들어온 pass 기준으로 저장
-				cmdPass(fd, cmds);
-			else if (cmdType == "nick" || cmdType == "NICK")
-				// nick 명령어 처리
-				cmdNick(fd, cmds);
-			else
-				// 비밀번호는 있고 닉네임이 없는 상태에서 pass, nick 명령어가 아닌 경우
-				send(fd,
-					 "CheckIn cmdType must be in order : |PASS| -> |NICK| -> |USER| \r\n",
-					 61, 0);
-		} else if (_clients[fd].getStatus() == NoUsername) {
-			// 유저네임이 없는 상태에서 pass, nick, user 명령어인 경우
-			if (cmdType == "pass" || cmdType == "PASS")
-				cmdPass(fd, cmds);
-			else if (cmdType == "nick" || cmdType == "NICK")
-				cmdNick(fd, cmds);
-			else if (cmdType == "user" || cmdType == "USER") {
-				cmdUser(fd, cmds);
-				// welcome 메시지 전송
-				send(fd, "001 :Welcome to the Internet Relay Network\r\n", 42,
-					 0);
-			}
-		} else if (_clients[fd].getStatus() == LoggedIn) {
-			// 로그인 상태에서 명령어 처리
-			if (cmdType == "pass" || cmdType == "PASS")
-				send(fd, "462 PASS :You may not reregister\r\n", 33, 0);
-			else if (cmdType == "nick" || cmdType == "NICK")
-				cmdNick(fd, cmds);
-			else if (cmdType == "user" || cmdType == "USER")
-				send(fd, "462 USER :You may not reregister\r\n", 33, 0);
-			else if (cmdType == "join" || cmdType == "JOIN")
-				cmdJoin(fd, cmds);
-			else if (cmdType == "part" || cmdType == "PART")
-				cmdPart(fd, cmds);
-			else if (cmdType == "privmsg" || cmdType == "PRIVMSG")
-				cmdPrivMsg(fd, cmds);
-			else if (cmdType == "kick" || cmdType == "KICK")
-				cmdKick(fd, cmds);
-			else if (cmdType == "invite" || cmdType == "INVITE")
-				cmdInvite(fd, cmds);
-			else if (cmdType == "topic" || cmdType == "TOPIC")
-				cmdTopic(fd, cmds);
-			else if (cmdType == "mode" || cmdType == "MODE")
-				cmdMode(fd, cmds);
+	// 클라이언트의 상태에 따라 명령을 처리
+	if (_clients[fd].getStatus() == NoPassword) {
+		// 비밀번호가 없는 상태에서 pass 명령어인 경우
+		if (cmdType == "pass" || cmdType == "PASS")
+			// pass 명령어 처리
+			cmdPass(fd, cmds);
+		else
+			// 비밀번호가 없는 상태에서 pass 명령어가 아닌 경우
+			send(fd,
+				 "CheckIn cmdType must be in order : |PASS| -> |NICK| -> |USER| \r\n",
+				 61, 0);
+	} else if (_clients[fd].getStatus() == NoNickname) {
+		// 비밀번호는 있고 닉네임이 없는 상태에서 pass, nick 명령어인 경우
+		if (cmdType == "pass" || cmdType == "PASS")
+			// pass 명령어 처리 : pass는 마지막에 들어온 pass 기준으로 저장
+			cmdPass(fd, cmds);
+		else if (cmdType == "nick" || cmdType == "NICK")
+			// nick 명령어 처리
+			cmdNick(fd, cmds);
+		else
+			// 비밀번호는 있고 닉네임이 없는 상태에서 pass, nick 명령어가 아닌 경우
+			send(fd,
+				 "CheckIn cmdType must be in order : |PASS| -> |NICK| -> |USER| \r\n",
+				 61, 0);
+	} else if (_clients[fd].getStatus() == NoUsername) {
+		// 유저네임이 없는 상태에서 pass, nick, user 명령어인 경우
+		if (cmdType == "pass" || cmdType == "PASS")
+			cmdPass(fd, cmds);
+		else if (cmdType == "nick" || cmdType == "NICK")
+			cmdNick(fd, cmds);
+		else if (cmdType == "user" || cmdType == "USER") {
+			cmdUser(fd, cmds);
+			// welcome 메시지 전송
+			send_fd(fd, RPL_001_WELCOME(_clients[fd].getNickName()));
+			send_fd(fd, RPL_WELCOME(_clients[fd].getNickName()));
+			std::cout << "welcome message sent" << std::endl;
+		}
+	} else if (_clients[fd].getStatus() == LoggedIn) {
+		// 로그인 상태에서 명령어 처리
+		if (cmdType == "pass" || cmdType == "PASS")
+			send(fd, "462 PASS :You may not reregister\r\n", 33, 0);
+		else if (cmdType == "nick" || cmdType == "NICK")
+			cmdNick(fd, cmds);
+		else if (cmdType == "user" || cmdType == "USER")
+			send(fd, "462 USER :You may not reregister\r\n", 33, 0);
+		else if (cmdType == "join" || cmdType == "JOIN")
+			cmdJoin(fd, cmds);
+		else if (cmdType == "part" || cmdType == "PART")
+			cmdPart(fd, cmds);
+		else if (cmdType == "privmsg" || cmdType == "PRIVMSG")
+			cmdPrivMsg(fd, cmds);
+		else if (cmdType == "kick" || cmdType == "KICK")
+			cmdKick(fd, cmds);
+		else if (cmdType == "invite" || cmdType == "INVITE")
+			cmdInvite(fd, cmds);
+		else if (cmdType == "topic" || cmdType == "TOPIC")
+			cmdTopic(fd, cmds);
+		else if (cmdType == "mode" || cmdType == "MODE")
+			cmdMode(fd, cmds);
 //			else if (cmdType == "quit" || cmdType == "QUIT")
 //				cmdQuit(fd, cmds);
 //			else if (cmdType == "ping" || cmdType == "PING")
 //				cmdPing(fd, cmds);
-		}
 	}
 
 }

@@ -3,8 +3,24 @@
 
 #include "Client.hpp"
 
-#define serverName "ft_irc"
-#define colonServerName ":localhost "
+
+
+void send_fd(int fd, std::string str)
+{
+	int ret = send(fd, str.c_str(), str.size(), 0);
+	if (ret == -1)
+	{
+		std::cerr << str.c_str() << "\n";
+	}
+	std::cout << "========== send client " << fd << " ==========\n";
+	std::cout << str << "\n\n";
+	return;
+}
+
+
+
+const static std::string serverName = "ft_irc";
+const static std::string colonServerName =  ":localhost ";
 
 // The first message sent after client registration
 #define RPL_001_WELCOME(client) (colonServerName + "001 " + client + " :Welcome to the Internet Relay Network " + client + "\r\n")
