@@ -83,6 +83,7 @@ void Server::recvClient(int i) {
         _pollFds.erase(_pollFds.begin() + i);
         for (std::map<std::string, Channel>::iterator it = _channels.begin(); it != _channels.end(); it++) {
             it->second.removeClient(clientFd);
+            checkChannelEmpty(it->second);
         }
         _clients.erase(clientFd);
         return;
@@ -383,6 +384,8 @@ void Server::cmdPart(int fd, std::vector<std::string> cmds) {
 
             // 클라이언트에서 채널 제거
             _clients[fd].removeChannel(cmds[1]);
+
+            checkChannelEmpty(_channels[cmds[1]]);
 
             // 채널에 메시지 전송
             send_fd(fd, RPL_PART(_clients[fd].getNickName(), _clients[fd].getHostName(), _clients[fd].getServerName(), cmds[1]));
@@ -783,6 +786,7 @@ void Server::cmdQuit(int fd, int i) {
     _pollFds.erase(_pollFds.begin() + i);
     for (std::map<std::string, Channel>::iterator it = _channels.begin(); it != _channels.end(); it++) {
         it->second.removeClient(fd);
+        checkChannelEmpty(it->second);
     }
     _clients.erase(fd);
 }
@@ -805,4 +809,10 @@ int Server::findFdByNick(std::string nick) {
             return (it->first);
     }
     return (-1);
+}
+
+void Server::checkChannelEmpty(Channel& channel) {
+    if (channel.getClients().size() != 0)
+        return ;
+    _channels.erase(channel.getChannelName());
 }
