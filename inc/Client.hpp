@@ -40,9 +40,6 @@ private:
 	// 클라이언트의 서버네임
 	std::string _serverName;
 
-	// 클라이언트의 비밀번호
-	std::string _password;
-
 	// 클라이언트가 속한 채널
 	std::map<std::string, Channel *> _clientChannels;
 
@@ -88,9 +85,6 @@ public:
 
 	// get client's servername
 	std::string getServerName();
-
-	// get client's password
-	std::string getPassword();
 
 	std::map<std::string, Channel *> getClientChannels();
 

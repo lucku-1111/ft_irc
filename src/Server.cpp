@@ -147,7 +147,6 @@ std::vector<std::string> splitMsg(std::string line) {
     return (command);
 }
 
-
 // ToDo : 클라이언트 생성은 poll에서 새로운 클라이언트가 들어왔을 때만 생성?
 // ToDo : 클라이언트 소켓을 닫을 때 클라이언트 객체도 삭제해야하는지?
 
@@ -171,12 +170,12 @@ void Server::executeCommand(int fd, std::vector<std::string> cmds, int idx) {
             cmdPass(fd, cmds);
         else
             // 비밀번호가 없는 상태에서 pass 명령어가 아닌 경우
-            send(fd, "CheckIn cmdType must be in order : |PASS| -> |NICK| -> |USER| \r\n", 61, 0);
+            send_fd(fd, "CheckIn cmdType must be in order : |PASS| -> |NICK| -> |USER| \r\n");
     } else if (_clients[fd].getStatus() == NoNickname) {
         // 비밀번호는 있고 닉네임이 없는 상태에서 pass, nick 명령어인 경우
         if (cmdType == "pass" || cmdType == "PASS")
-            // pass 명령어 처리 : pass는 마지막에 들어온 pass 기준으로 저장
-            cmdPass(fd, cmds);
+            // 이미 pass는 처리된 경우
+            send_fd(fd, "Already passed\r\n");
         else if (cmdType == "nick" || cmdType == "NICK")
             // nick 명령어 처리
             cmdNick(fd, cmds);
@@ -186,7 +185,8 @@ void Server::executeCommand(int fd, std::vector<std::string> cmds, int idx) {
     } else if (_clients[fd].getStatus() == NoUsername) {
         // 유저네임이 없는 상태에서 pass, nick, user 명령어인 경우
         if (cmdType == "pass" || cmdType == "PASS")
-            cmdPass(fd, cmds);
+            // 이미 pass는 처리된 경우
+            send_fd(fd, "Already passed\r\n");
         else if (cmdType == "nick" || cmdType == "NICK")
             cmdNick(fd, cmds);
         else if (cmdType == "user" || cmdType == "USER") {
@@ -235,8 +235,10 @@ void Server::cmdPass(int fd, std::vector<std::string> cmds) {
     if (cmds.size() < 2)
         send_fd(fd, RPL_461_NEEDMOREPARAMS(_clients[fd].getNickName(), "PASS"));
     else {
-        _clients[fd].setPassword(cmds[1]);
-        _clients[fd].setIsPasswordSet(true);
+        if (_pwd == cmds[1]) {
+            _clients[fd].setIsPasswordSet(true);
+        } else
+            send_fd(fd, RPL_464_PASSWDMISMATCH());
     }
 }
 
@@ -306,8 +308,13 @@ void Server::cmdJoin(int fd, std::vector<std::string> cmds) {
                 _clients[fd].addChannel(cmds[1], &_channels[cmds[1]]);
 
             }
-            // 채널에 메시지 전송
+            // 채널에 새로운 클라이언트 입장 메시지 전송
             _channels[cmds[1]].sendToAllClients(fd, RPL_JOIN(_clients[fd].getNickName(), _clients[fd].getHostName(), _clients[fd].getServerName(), cmds[1]));
+
+            // 채널에 존재하는 클라이언트 목록 전송
+            send_fd(fd, RPL_353_NAMREPLY(_clients[fd].getNickName(), cmds[1], _channels[cmds[1]].getChannelClients()));
+            send_fd(fd, RPL_366_ENDOFNAMES(_clients[fd].getNickName(), cmds[1]));
+
         }
     }
 }
@@ -373,7 +380,7 @@ void Server::cmdPrivMsg(int fd, std::vector<std::string> cmds) {
 
             if (it == _clients.end()) {
                 // 수신자가 존재하지 않는 경우
-                send(fd, "401 PRIVMSG :No such nick/channel\r\n", 35, 0);
+                send_fd(fd, RPL_401_NOSUCHNICK(_clients[fd].getNickName(), cmds[1]));
             }
 
         }
@@ -398,7 +405,7 @@ void Server::cmdMode(int fd, std::vector<std::string> cmds) {
                         _channels[cmds[1]].setIsInviteOnly(true);
                         send(fd, "MODE :+i\r\n", 9, 0);
                     } else {
-                        send(fd, "482 MODE :You're not channel operator\r\n", 38, 0);
+                        send_fd(fd, RPL_482_CHANOPRIVSNEEDED(_clients[fd].getNickName(), cmds[1]));
                     }
                 } else if (cmds[2] == "-i") {
                     // 채널에 초대전용 해제
@@ -553,9 +560,10 @@ void Server::cmdKick(int fd, std::vector<std::string> cmds) {
             if (_channels.find(cmds[1]) != _channels.end()) {
                 // 유저가 op인지 확인
                 if (_channels[cmds[1]].isClientOP(fd)) {
-                    // 킥할 유저가 존재하는 경우
+
                     std::map<int, Client *>::iterator it;
 
+                    // 킥할 유저가 존재하는 경우
                     for (it = _channels[cmds[1]].getClients().begin(); it != _channels[cmds[1]].getClients().end(); ++it) {
                         if (it->second->getNickName() == cmds[2]) {
                             // 킥할 유저 제거
@@ -609,7 +617,7 @@ void Server::cmdInvite(int fd, std::vector<std::string> cmds) {
 
                     if (it == _clients.end()) {
                         // 초대할 유저가 존재하지 않는 경우
-                        send(fd, "441 INVITE :They aren't on that channel\r\n", 41, 0);
+                        send(fd, "441 INVITE :They aren't on that channel\r\n", 41, 0); // 고쳐야할듯
 
                     }
                 } else {

@@ -125,6 +125,8 @@ public:
     // 초대 리스트에 클라이언트 제거
     void removeClientFromInviteList(int fd);
 
+    // 채널에 있는 클라이언트들을 공백으로 구분해 출력하는 메서드
+    std::string getChannelClients();
 
 };
 

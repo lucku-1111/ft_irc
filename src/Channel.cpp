@@ -120,12 +120,17 @@ void Channel::addClient(int fd, Client *client) {
 }
 
 void Channel::removeClient(int fd) {
+
+    std::cout << "::::::::: erase" << std::endl;
     // 채널에서 클라이언트를 제거
     _clients.erase(fd);
 
+    std::cout << "::::::::: removeClientFromOPList" << std::endl;
     // op권한이 있었다면 제거
     removeClientFromOPList(fd);
 
+
+    std::cout << "::::::::: removeClientFromInviteList" << std::endl;
     // 초대된 클라이언트 목록에서 제거
     removeClientFromInviteList(fd);
 
@@ -187,6 +192,18 @@ bool Channel::isClientInvited(int fd) {
     return false;
 }
 
+std::string Channel::getChannelClients() {
+    std::string ret = "";
 
+    std::map<int, Client *>::iterator it;
+    for (it = _clients.begin(); it != _clients.end(); it++) {
 
+        // op인 경우 @ 추가
+        if (isClientOP(it->first))
+            ret += "@";
+
+        ret += it->second->getNickName() + " ";
+    }
+    return ret;
+}
 
