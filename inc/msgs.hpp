@@ -32,10 +32,10 @@ const static std::string version = "1.0.0";
 #define RPL_324_CHANNELMODE(channel, mode) (colonServerName + "324 " + channel + " :channel mode is " + mode + "\r\n")
 
 // 331: No topic is set
-#define RPL_331_NOTOPIC(channel) (colonServerName + "331 " + client + " " + channel + " :No topic is set\r\n")
+#define RPL_331_NOTOPIC(client, channel) (colonServerName + "331 " + client + " " + channel + " :No topic is set\r\n")
 
 // 332: Topic message
-#define RPL_332_TOPIC(channel, topic) (colonServerName + "332 " + client + " " + channel + " :" + topic + "\r\n")
+#define RPL_332_TOPIC(client, channel, topic) (colonServerName + "332 " + client + " " + channel + " :" + topic + "\r\n")
 
 // 341: Reply to INVITE showing who was invited to which channel
 #define RPL_341_INVITE(client, channel) (colonServerName + "341 " + client + " " + channel + "\r\n")
@@ -125,9 +125,6 @@ const static std::string version = "1.0.0";
 
 // Response to pivate message
 #define RPL_PRIVMSG(nick, user, servername, channel, msg) ":" + nick + "!" + user + "@" + servername + " PRIVMSG " + channel + " :" + msg + "\r\n"
-
-// Response to Topic
-#define RPL_TOPIC(nick, channel, topic) ":" + nick + " TOPIC " + channel + " :" + topic + "\r\n"
 
 // Response to Mode
 #define RPL_MODE(nick, channel, mode) ":" + nick + " MODE " + channel + " :" + mode + "\r\n"

@@ -358,6 +358,8 @@ void Server::cmdJoin(int fd, std::vector<std::string> cmds) {
             _channels[cmds[1]].sendToAllClients(0, RPL_JOIN(_clients[fd].getNickName(), _clients[fd].getHostName(), _clients[fd].getServerName(), cmds[1]));
 
             // 채널에 존재하는 클라이언트 목록 전송
+            if (_channels[cmds[1]].getTopic() != "")
+                send_fd(fd, RPL_332_TOPIC(_clients[fd].getNickName(), cmds[1], _channels[cmds[1]].getTopic()));
             send_fd(fd, RPL_353_NAMREPLY(_clients[fd].getNickName(), cmds[1], _channels[cmds[1]].getChannelClients()));
             send_fd(fd, RPL_366_ENDOFNAMES(_clients[fd].getNickName(), cmds[1]));
 
@@ -639,46 +641,42 @@ void Server::cmdMode(int fd, std::vector<std::string> cmds) {
 
 
 void Server::cmdTopic(int fd, std::vector<std::string> cmds) {
-    if (cmds.size() < 3)
+    if (cmds.size() < 2) {
         send_fd(fd, RPL_461_NEEDMOREPARAMS(_clients[fd].getNickName(), "TOPIC"));
-    else {
-        // 채널이름이 #으로 시작하지 않는 경우
-        if (cmds[1][0] != '#')
-            send_fd(fd, RPL_403_NOSUCHCHANNEL(_clients[fd].getNickName(), cmds[1]));
-        else {
-            // 채널이름이 #으로 시작하는 경우
-            // 채널이 존재하는 경우
-            if (_channels.find(cmds[1]) != _channels.end()) {
-                // 토픽을 설정하는 경우
-                if (cmds[2] != "") {
-
-                    if (_channels[cmds[1]].getIsTopicProtected()) {
-                        // 토픽이 보호되는 경우
-                        // 유저가 op인지 확인
-                        if (_channels[cmds[1]].isFdInOPList(fd)) {
-                            // 토픽 설정
-                            _channels[cmds[1]].setTopic(cmds[2]);
-                            send(fd, "TOPIC :End of /NAMES list.\r\n", 27, 0);
-                        } else {
-                            send(fd, "482 TOPIC :You're not channel operator\r\n", 39, 0);
-                        }
-                    } else {
-                        // 토픽 설정
-                        _channels[cmds[1]].setTopic(cmds[2]);
-                        send(fd, "TOPIC :End of /NAMES list.\r\n", 27, 0);
-                    }
-                } else {
-                    // 토픽을 해제하는 경우
-                    _channels[cmds[1]].setTopic(cmds[2]);
-                    // 토픽 전송
-                    send(fd, "332 TOPIC :End of /NAMES list.\r\n", 27, 0);
-                }
-            } else {
-                // 채널이 존재하지 않는 경우
-                send_fd(fd, RPL_403_NOSUCHCHANNEL(_clients[fd].getNickName(), cmds[1]));
-            }
-        }
+        return ;
     }
+    // 채널이 없는 경우
+    if (_channels.find(cmds[1]) == _channels.end()) {
+        send_fd(fd, RPL_403_NOSUCHCHANNEL(_clients[fd].getNickName(), cmds[1]));
+        return ;
+    }
+    // 채널에 속한 사용자가 아닌 경우
+    if (!_channels[cmds[1]].isFdInChannel(fd)) {
+        send_fd(fd, RPL_442_NOTONCHANNEL(_clients[fd].getNickName(), cmds[1]));
+        return ;
+    }
+    // 토픽 출력 (매개변수 2개)
+    if (cmds.size() == 2) {
+        if (_channels[cmds[1]].getTopic() == "")
+            send_fd(fd, RPL_331_NOTOPIC(_clients[fd].getNickName(), cmds[1]));
+        else
+            send_fd(fd, RPL_332_TOPIC(_clients[fd].getNickName(), cmds[1], _channels[cmds[1]].getTopic()));
+        return ;
+    }
+    // 매개변수 3개
+    // 권한이 없는 경우
+    if (_channels[cmds[1]].getIsTopicProtected() && !_channels[cmds[1]].isFdInOPList(fd)) {
+        send_fd(fd, RPL_482_CHANOPRIVSNEEDED(_clients[fd].getNickName(), cmds[1]));
+        return ;
+    }
+    // 토픽을 해제하는 경우
+    if (cmds[2] == "") {
+        _channels[cmds[1]].setTopic(cmds[2]);
+        return ;
+    }
+    // 토픽 설정
+    _channels[cmds[1]].setTopic(cmds[2]);
+    sendAll(0, RPL_332_TOPIC(_clients[fd].getNickName(), cmds[1], _channels[cmds[1]].getTopic()));
 }
 
 void Server::cmdKick(int fd, std::vector<std::string> cmds) {
