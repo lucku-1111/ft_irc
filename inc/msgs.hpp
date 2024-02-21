@@ -67,6 +67,15 @@ const static std::string version = "1.0.0";
 // 403: No such channel
 #define RPL_403_NOSUCHCHANNEL(client, channel) (colonServerName + "403 " + client + " " + channel + " :No such channel\r\n")
 
+// 431: No nickname given
+#define RPL_431_NONICKNAMEGIVEN(client) (colonServerName + "431 " + client + " :No nickname given\r\n")
+
+// 432: Erroneous nickname
+#define RPL_432_ERR_ERRONEUSNICKNAME(client) (colonServerName + "432 " + client + " :Erroneous nickname\r\n")
+
+// 433: Nickname is already in use
+#define RPL_433_ERR_NICKNAMEINUSE(client) (colonServerName + "433 " + client + " :Nickname is already in use\r\n")
+
 // 442: You're not on that channel
 #define RPL_442_NOTONCHANNEL(channel) (colonServerName + "442 " + client + " " + channel + " :You're not on that channel\r\n")
 
@@ -95,6 +104,10 @@ const static std::string version = "1.0.0";
 #define RPL_482_CHANOPRIVSNEEDED(client, channel) (colonServerName + "482 " + client + " " + channel + " :You're not channel operator\r\n")
 
 ///// Command responses /////
+
+// Response to NICK
+#define RPL_NICK(nick, hostname, servername, newnick) ":" + nick + "!" + hostname + "@" + servername + " NICK :" + newnick + "\r\n"
+
 // Response to JOIN
 #define RPL_JOIN(nick, hostname, servername, channel) ":" + nick + "!" + hostname + "@" + servername + " JOIN :" + channel + "\r\n"
 
