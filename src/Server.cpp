@@ -568,7 +568,7 @@ void Server::cmdMode(int fd, std::vector<std::string> cmds) {
 
                             // 인원제한 설정
                             _channels[cmds[1]].setIsUserLimitSet(true);
-                            _channels[cmds[1]].setUserLimit(std::stoi(cmds[3]));
+                            _channels[cmds[1]].setUserLimit(std::atoi(cmds[3].c_str()));
 
                             // 채널에 전송
                             _channels[cmds[1]].sendToAllClients(0, RPL_MODEWITHPARAM(_clients[fd].getNickName(), cmds[1], "+l", cmds[3]));
