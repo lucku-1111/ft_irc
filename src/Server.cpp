@@ -407,6 +407,13 @@ void Server::cmdPrivMsg(int fd, std::vector<std::string> cmds) {
         if (cmds[1][0] == '#') {
             // 채널이 존재하는 경우
             if (_channels.find(cmds[1]) != _channels.end()) {
+
+                // 사용자가 채널에 접속해있는지 확인
+                if (!_channels[cmds[1]].isFdInChannel(fd)) {
+                    send_fd(fd, RPL_442_NOTONCHANNEL(_clients[fd].getNickName(), cmds[1]));
+                    return;
+                }
+
                 // 채널에 메시지 전송
                 _channels[cmds[1]].sendToAllClients(fd, RPL_PRIVMSG(_clients[fd].getNickName(), _clients[fd].getUserName(), _clients[fd].getServerName(), cmds[1], cmds[2]));
             } else {
@@ -415,18 +422,12 @@ void Server::cmdPrivMsg(int fd, std::vector<std::string> cmds) {
             }
         } else {
             // 수신자가 클라이언트인 경우
-            // 수신자가 존재하는 경우
-            std::map<int, Client>::iterator it;
 
-            for (it = _clients.begin(); it != _clients.end(); ++it) {
-                if (it->second.getNickName() == cmds[1]) {
-                    // 수신자에게 메시지 전송
-                    send_fd(it->first, RPL_PRIVMSG(_clients[fd].getNickName(), _clients[fd].getUserName(), _clients[fd].getServerName(), cmds[1], cmds[2]));
-                    break;
-                }
-            }
-
-            if (it == _clients.end()) {
+            // 수신자가 서버에 존재하는지 확인
+            if (isNickInServer(cmds[1])) {
+                // 수신자에게 메시지 전송
+                send_fd(findFdByNick(cmds[1]), RPL_PRIVMSG(_clients[fd].getNickName(), _clients[fd].getUserName(), _clients[fd].getServerName(), cmds[1], cmds[2]));
+            } else {
                 // 수신자가 존재하지 않는 경우
                 send_fd(fd, RPL_401_NOSUCHNICK(_clients[fd].getNickName(), cmds[1]));
             }
