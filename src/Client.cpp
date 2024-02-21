@@ -68,10 +68,6 @@ std::string Client::getServerName() {
 	return (_serverName);
 }
 
-std::string Client::getPassword() {
-	return (_password);
-}
-
 std::map<std::string, Channel *> Client::getClientChannels() {
 	return (_clientChannels);
 }
@@ -104,10 +100,6 @@ void Client::setHostName(std::string host) {
 
 void Client::setServerName(std::string server) {
 	_serverName = server;
-}
-
-void Client::setPassword(std::string password) {
-	_password = password;
 }
 
 void Client::setIsPasswordSet(bool isPasswordSet) {

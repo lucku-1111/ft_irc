@@ -242,22 +242,32 @@ void Server::cmdPass(int fd, std::vector<std::string> cmds) {
     }
 }
 
-bool validateNick(std::string nick, std::map<int, Client> clients) {
-    if (nick[0] == '#' || nick[0] == ':')
+bool validateNick(int fd, std::string nick, std::map<int, Client> clients) {
+    if (nick.length() > 10) {
+        send_fd(fd, RPL_432_ERR_ERRONEUSNICKNAME(nick));
         return (false);
-
+    }
+    if (nick.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_") != std::string::npos) {
+        send_fd(fd, RPL_432_ERR_ERRONEUSNICKNAME(nick));
+        return (false);
+    }
     for (std::map<int, Client>::iterator it = clients.begin(); it != clients.end(); it++) {
-        if (nick == it->second.getNickName())
+        if (nick == it->second.getNickName()) {
+            send_fd(fd, RPL_433_ERR_NICKNAMEINUSE(nick));
             return (false);
+        }
     }
 
     return (true);
 }
 
 void Server::cmdNick(int fd, std::vector<std::string> cmds) {
-    if (cmds.size() < 2 && validateNick(cmds[1], _clients))
-        send_fd(fd, RPL_461_NEEDMOREPARAMS(_clients[fd].getNickName(), "NICK"));
-    else {
+    if (cmds.size() < 2 || cmds[1] == "")
+        send_fd(fd, RPL_431_NONICKNAMEGIVEN(_clients[fd].getNickName()));
+    else if (validateNick(fd, cmds[1], _clients)) {
+        send_fd(fd, RPL_NICK(_clients[fd].getNickName(), _clients[fd].getHostName(), _clients[fd].getServerName(), cmds[1]));
+        sendAll(fd, RPL_NICK(_clients[fd].getNickName(), _clients[fd].getHostName(), _clients[fd].getServerName(), cmds[1]));
+        _clients[fd].getClientChannels();
         _clients[fd].setNickName(cmds[1]);
         _clients[fd].setIsNickSet(true);
     }
