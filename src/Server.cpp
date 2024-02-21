@@ -285,6 +285,40 @@ void Server::cmdUser(int fd, std::vector<std::string> cmds) {
     }
 }
 
+bool Server::validateJoin(int fd, std::vector<std::string> cmds, bool flag) {
+    if (flag) {
+        std::map<int, Client *> clientList = _channels[cmds[1]].getClients();
+        Channel chan = _channels[cmds[1]];
+
+        if (clientList.find(fd) != clientList.end()) {
+            send_fd(fd, RPL_443_ERR_USERONCHANNEL(_clients[fd].getNickName(), cmds[1]));
+            return (false);
+        }
+        if (chan.getIsUserLimitSet() && (int)clientList.size() == chan.getUserLimit()) {
+            send_fd(fd, RPL_471_ERR_CHANNELISFULL(_clients[fd].getNickName(), cmds[1]));
+            return (false);
+        }
+        if (chan.getIsInviteOnly() && !chan.isFdInInviteList(fd)) {
+            send_fd(fd, RPL_473_ERR_INVITEONLYCHAN(_clients[fd].getNickName(), cmds[1]));
+            return (false);
+        }
+        if (chan.getIsPasswordSet() && (cmds[2] != chan.getPassword())) {
+            send_fd(fd, RPL_475_ERR_BADCHANNELKEY(_clients[fd].getNickName(), cmds[1]));
+            return (false);
+        }
+        return (true);
+    }
+    else {
+        std::string name = cmds[1].erase(0, 1);
+
+        if (name.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_") != std::string::npos) {
+            send_fd(fd, RPL_ERR_BADCHANNELNAME(_clients[fd].getNickName(), "#" + cmds[1]));
+            return (false);
+        }
+        return (true);
+    }
+}
+
 void Server::cmdJoin(int fd, std::vector<std::string> cmds) {
     if (cmds.size() < 2)
         send_fd(fd, RPL_461_NEEDMOREPARAMS(_clients[fd].getNickName(), "JOIN"));
@@ -296,16 +330,19 @@ void Server::cmdJoin(int fd, std::vector<std::string> cmds) {
             // 채널이름이 #으로 시작하는 경우
             // 채널이름이 이미 존재하는 경우
             if (_channels.find(cmds[1]) != _channels.end()) {
-
+                if (!validateJoin(fd, cmds, true)) //예외처리
+                    return ;
                 // 채널에 클라이언트 추가
                 _channels[cmds[1]].addClient(fd, &_clients[fd]);
 
                 // 클라이언트에 채널 추가
                 _clients[fd].addChannel(cmds[1], &_channels[cmds[1]]);
             } else {
-
+                if (!validateJoin(fd, cmds, false)) //채널이름 체크
+                    return ;
                 // 채널이름이 존재하지 않는 경우
                 // 채널 생성
+
                 Channel channel(cmds[1]);
 
                 // 서버 채널리스트에 채널 추가

@@ -79,6 +79,9 @@ const static std::string version = "1.0.0";
 // 442: You're not on that channel
 #define RPL_442_NOTONCHANNEL(channel) (colonServerName + "442 " + client + " " + channel + " :You're not on that channel\r\n")
 
+// 443: is already on channel
+#define RPL_443_ERR_USERONCHANNEL(client, channel) (colonServerName + "443 " + client + " " + channel + " :is already on channel\r\n")
+
 // 461 : Not enough parameters
 #define RPL_461_NEEDMOREPARAMS(client, cmd) (colonServerName + "461 " + client + " " + cmd + " :Not enough parameters\r\n")
 
@@ -88,14 +91,20 @@ const static std::string version = "1.0.0";
 // 464 : Password incorrect
 #define RPL_464_PASSWDMISMATCH() (colonServerName + "464 " + ":Password incorrect\r\n")
 
+// 471 : Cannot join channel (+l)
+#define RPL_471_ERR_CHANNELISFULL(client, channel) (colonServerName + "471 " + client + " " + channel + " :Cannot join channel (+l)\r\n")
+
 // 472: Unknown MODE flag
 #define RPL_472_UNKNOWNMODE(mode) (colonServerName + "472 " +  mode + " :is unknown mode\r\n")
 
 // 473: Cannot join channel (+i)
-#define RPL_473_INVITEONLYCHAN(channel) (colonServerName + "473 " + client + " " + channel + " :Cannot join channel (+i)\r\n")
+#define RPL_473_ERR_INVITEONLYCHAN(client, channel) (colonServerName + "473 " + client + " " + channel + " :Cannot join channel (+i)\r\n")
 
 // 475: Cannot join channel (+k)
-#define RPL_475_BADCHANNELKEY(channel) (colonServerName + "475 " + client + " " + channel + " :Cannot join channel (+k)\r\n")
+#define RPL_475_ERR_BADCHANNELKEY(client, channel) (colonServerName + "475 " + client + " " + channel + " :Cannot join channel (+k)\r\n")
+
+// : Invalid channel name
+#define RPL_ERR_BADCHANNELNAME(client, channel) (colonServerName + "476 " + client + " " + channel + " :Bad Channel Name\r\n")
 
 // 477: Channel does not support channel modes
 #define RPL_477_NOCHANMODES(channel, mode) (colonServerName + "477 " + client + " " + channel + " : channel does not support "+ mode + "mode\r\n")

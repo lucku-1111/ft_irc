@@ -9,7 +9,7 @@ bool checkPort(char* str) {
 }
 
 bool checkPwd(std::string pwd) {
-	if (pwd[0] == '#' || pwd[0] == ':')
+	if (pwd.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_") != std::string::npos)
 		return (false);
 	return (true);
 }

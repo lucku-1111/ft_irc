@@ -63,6 +63,7 @@ public:
     void cmdUser(int fd, std::vector<std::string> cmds);
 
     void cmdJoin(int fd, std::vector<std::string> cmds);
+    bool validateJoin(int fd, std::vector<std::string> cmds, bool flag);
 
     void cmdPart(int fd, std::vector<std::string> cmds);
 
