@@ -11,132 +11,137 @@ class Client;
 
 class Channel {
 private:
-	///// 채널 데이터 /////
-	// 채널 이름
-	std::string _channelName;
+    ///// 채널 데이터 /////
+    // 채널 이름
+    std::string _channelName;
 
-	// 채널에 들어와있는 클라이언트들을 저장하는 맵 : 클라이언트의 fd를 키로 사용, 클라이언트 객체 포인터를 값으로 사용
-	std::map<int, Client *> _clients;
+    // 채널에 들어와있는 클라이언트들을 저장하는 맵 : 클라이언트의 fd를 키로 사용, 클라이언트 객체 포인터를 값으로 사용
+    std::map<int, Client *> _clients;
 
-	// 채널에 초대된 클라이언트 fd들을 저장하는 벡터
-	std::vector<int> _inviteList;
+    // 채널에 초대된 클라이언트 fd들을 저장하는 벡터
+    std::vector<int> _inviteList;
 
-	// 채널에 오퍼레이터 권한을 가진 클라이언트 fd들을 저장하는 벡터
-	std::vector<int> _operatorList;
+    // 채널에 오퍼레이터 권한을 가진 클라이언트 fd들을 저장하는 벡터
+    std::vector<int> _operatorList;
 
-	// 채널 비밀번호
-	std::string _password;
+    // 채널 주제
+    std::string _topic;
 
-	// 채널 주제
-	std::string _topic;
+    ///// 채널 모드 /////
+    // 비밀번호 설정 모드
+    bool _isPasswordSet;
 
-	// 채널에 설정된 사용자 제한 수
-	int _userLimit;
+    // 초대 전용 모드
+    bool _isInviteOnly;
 
-	///// 채널 모드 /////
-	// 비밀번호 설정 모드
-	bool _isPasswordSet;
+    // 주제 보호 모드 (op만 주제 설정 가능)
+    bool _isTopicProtected;
 
-	// 초대 전용 모드
-	bool _isInviteOnly;
+    // 유저 수 제한 모드
+    bool _isUserLimitSet;
 
-	// 주제 보호 모드 (op만 주제 설정 가능)
-	bool _isTopicProtected;
+    // 채널 비밀번호
+    std::string _password;
 
-	// 유저 수 제한 모드
-	bool _isUserLimitSet;
+    // 채널에 설정된 사용자 제한 수
+    int _userLimit;
 
 public:
-	///// Constructor & Destructor /////
-	Channel();
+    ///// Constructor & Destructor /////
+    Channel();
 
-	Channel(std::string channelName);
+    Channel(std::string channelName);
 
-	virtual ~Channel();
+    virtual ~Channel();
 
-	///// Getter /////
-	std::string getChannelName();
 
-	std::map<int, Client *> getClients();
+    ///// Getter /////
+    std::string getChannelName();
 
-	std::vector<int> getInviteList();
+    std::map<int, Client *> getClients();
 
-	std::vector<int> getOperatorList();
+    std::vector<int> getInviteList();
 
-	std::string getPassword();
+    std::vector<int> getOperatorList();
 
-	std::string getTopic();
+    std::string getTopic();
 
-	bool getIsPasswordSet();
+    std::string getPassword();
 
-	bool getIsInviteOnly();
+    int getUserLimit();
 
-	bool getIsTopicProtected();
+    bool getIsPasswordSet();
 
-	bool getIsUserLimitSet();
+    bool getIsInviteOnly();
 
-	int getUserLimit();
+    bool getIsTopicProtected();
 
-	///// Setter /////
-	void setChannelName(std::string channelName);
+    bool getIsUserLimitSet();
 
-	void setPassword(std::string password);
 
-	void setTopic(std::string topic);
+    ///// Setter /////
+    void setChannelName(std::string channelName);
 
-	void setUserLimit(int userLimit);
+    void setPassword(std::string password);
 
-	void setIsPasswordSet(bool isPasswordSet);
+    void setTopic(std::string topic);
 
-	void setIsInviteOnly(bool isInviteOnly);
+    void setUserLimit(int userLimit);
 
-	void setIsTopicProtected(bool isTopicProtected);
+    void setIsPasswordSet(bool isPasswordSet);
 
-	void setIsUserLimitSet(bool isUserLimitSet);
+    void setIsInviteOnly(bool isInviteOnly);
 
-	///// Method /////
-	// 채널에 클라이언트를 추가하는 메서드
-	void addClient(int fd, Client *client);
+    void setIsTopicProtected(bool isTopicProtected);
 
-	// 채널에서 클라이언트를 제거하는 메서드
-	void removeClient(int fd);
+    void setIsUserLimitSet(bool isUserLimitSet);
 
-	// 채널에서 OP를 추가하는 메서드
-	void addOperator(int fd);
+    ///// Method /////
+    /// 명령어
+    // 자신을 제외한 모든 클라이언트에게 메시지를 보내는 메서드
+    void sendToAllClients(int fd, std::string message);
 
-	// 채널에 초대된 클라이언트를 추가하는 메서드
-	void addInviteClient(int fd);
+    // 채널에 있는 클라이언트들을 공백으로 구분해 출력하는 메서드
+    std::string getChannelClients();
 
-	// 자신을 제외한 모든 클라이언트에게 메시지를 보내는 메서드
-	void sendToAllClients(int fd, std::string message);
+    /// 클라이언트 리스트
+    // 채널에 클라이언트를 추가하는 메서드
+    void addClient(int fd, Client *client);
 
-	// OP리스트에 클라이언트 추가
-	void addClientToOPList(int fd);
+    // 채널에서 클라이언트를 제거하는 메서드
+    void removeClient(int fd);
 
-	// OP리스트에서 클라이언트 제거
-	void removeClientFromOPList(int fd);
+    // 채널에 닉네임의 클라이언트가 있는지 확인하는 메서드
+    bool isNickInChannel(std::string nick);
 
-	// 초대 리스트에 클라이언트 제거
-	void removeClientFromInviteList(int fd);
+    // 채널에 fd를 가지는 클라이언트가 있는지 확인하는 메서드
+    bool isFdInChannel(int fd);
 
-	// 채널에 있는 클라이언트들을 공백으로 구분해 출력하는 메서드
-	std::string getChannelClients();
+    /// OP 리스트
+    // OP리스트에 클라이언트 추가
+    void addClientToOPList(int fd);
 
-	// 채널에 닉네임의 클라이언트가 있는지 확인하는 메서드
-	bool isNickInChannel(std::string nick);
+    // OP리스트에서 클라이언트 제거
+    void removeClientFromOPList(int fd);
 
-	// 채널에 fd를 가지는 클라이언트가 있는지 확인하는 메서드
-	bool isFdInChannel(int fd);
+    // fd의 클라이언트가 op인지 확인하는 메서드
+    bool isFdInOPList(int fd);
 
-	// 채널의 초대 리스트에 fd를 가지는 클라이언트가 있는지 확인하는 메서드
-	bool isFdInInviteList(int fd);
+    // 닉네임의 클라이언트가 op인지 확인하는 메서드
+    bool isNickInOPList(std::string nick);
 
-	// 클라이언트가 op인지 확인하는 메서드
-	bool isFdInOPList(int fd);
+    /// 초대 리스트
+    // 초대 리스트에 클라이언트 추가
+    void addClientToInviteList(int fd);
 
-	// 클라이언트가 op인지 확인하는 메서드
-	bool isNickInOPList(std::string nick);
+    // 초대 리스트에 클라이언트 제거
+    void removeClientFromInviteList(int fd);
 
+    // 채널의 초대 리스트에 fd를 가지는 클라이언트가 있는지 확인하는 메서드
+    bool isFdInInviteList(int fd);
+
+    // 채널의 초대 리스트에 닉네임의 클라이언트가 있는지 확인하는 메서드
+    bool isNickInInviteList(std::string nick);
 
 };
 
