@@ -77,7 +77,7 @@ const static std::string version = "1.0.0";
 #define RPL_433_ERR_NICKNAMEINUSE(client) (colonServerName + "433 " + client + " :Nickname is already in use\r\n")
 
 // 442: You're not on that channel
-#define RPL_442_NOTONCHANNEL(channel) (colonServerName + "442 " + client + " " + channel + " :You're not on that channel\r\n")
+#define RPL_442_NOTONCHANNEL(client, channel) (colonServerName + "442 " + client + " " + channel + " :You're not on that channel\r\n")
 
 // 443: is already on channel
 #define RPL_443_ERR_USERONCHANNEL(client, channel) (colonServerName + "443 " + client + " " + channel + " :is already on channel\r\n")

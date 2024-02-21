@@ -369,27 +369,26 @@ void Server::cmdPart(int fd, std::vector<std::string> cmds) {
     if (cmds.size() < 2)
         send_fd(fd, RPL_461_NEEDMOREPARAMS(_clients[fd].getNickName(), "PART"));
     else {
-        // 채널이름이 #으로 시작하지 않는 경우
-        if (cmds[1][0] != '#')
-            send_fd(fd, RPL_403_NOSUCHCHANNEL(_clients[fd].getNickName(), cmds[1]));
-        else {
-            // 채널이름이 #으로 시작하는 경우
-            // 채널이름이 존재하는 경우
-            if (_channels.find(cmds[1]) != _channels.end()) {
-
-                // 채널에서 클라이언트 제거
-                _channels[cmds[1]].removeClient(fd);
-
-                // 클라이언트에서 채널 제거
-                _clients[fd].removeChannel(cmds[1]);
-
-                // 채널에 메시지 전송
-                _channels[cmds[1]].sendToAllClients(fd, RPL_PART(_clients[fd].getNickName(), _clients[fd].getHostName(), _clients[fd].getServerName(), cmds[1]));
-            } else {
-
-                // 채널이름이 존재하지 않는 경우
-                send_fd(fd, RPL_403_NOSUCHCHANNEL(_clients[fd].getNickName(), cmds[1]));
+        // 채널이름이 존재하는 경우
+        if (_channels.find(cmds[1]) != _channels.end()) {
+            // 채널에 클라이언트가 존재하는지 체크
+            if (!_channels[cmds[1]].isFdInChannel(fd)) {
+                send_fd(fd, RPL_442_NOTONCHANNEL(_clients[fd].getNickName(), cmds[1]));
+                return ;
             }
+            // 채널에서 클라이언트 제거
+            _channels[cmds[1]].removeClient(fd);
+
+            // 클라이언트에서 채널 제거
+            _clients[fd].removeChannel(cmds[1]);
+
+            // 채널에 메시지 전송
+            _channels[cmds[1]].sendToAllClients(fd,
+                                                RPL_PART(_clients[fd].getNickName(), _clients[fd].getHostName(), _clients[fd].getServerName(), cmds[1]));
+        }
+        else {
+            // 채널이름이 존재하지 않는 경우
+            send_fd(fd, RPL_403_NOSUCHCHANNEL(_clients[fd].getNickName(), cmds[1]));
         }
     }
 }
