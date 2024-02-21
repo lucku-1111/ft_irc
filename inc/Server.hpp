@@ -86,7 +86,7 @@ public:
 
     int findFdByNick(std::string nick);
 
-    void Server::checkChannelEmpty(Channel& channel);
+    void checkChannelEmpty(Channel& channel);
 };
 
 std::vector<std::string> splitMsg(std::string line);
