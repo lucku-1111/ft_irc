@@ -439,101 +439,93 @@ void Server::cmdMode(int fd, std::vector<std::string> cmds) {
                         if (isClientInServer(cmds[3])) {
                             // 유저가 존재하는 경우
                             // 유저가 채널에 존재하는지 확인
-                            if (_channels[cmds[1]].isClientInChannel(cmds[3])) {
-                                // 유저가 채널에 존재하는 경우
-                                // 유저에게 op 권한 부여
-                                send_fd(fd, RPL_482_CHANOPRIVSNEEDED(_clients[fd].getNickName(), cmds[1]));
-                            } else {
-                                send_fd(fd, RPL_441_USERNOTINCHANNEL(_clients[fd].getNickName(), cmds[3], cmds[1]));
-                            }
-                        } else {
-                            // 유저가 존재하지 않는 경우
-                            send_fd(fd, RPL_401_NOSUCHNICK(_clients[fd].getNickName(), cmds[3]));
+                            ;
                         }
+                    } else {
+                        // 유저가 존재하지 않는 경우
+                        send_fd(fd, RPL_401_NOSUCHNICK(_clients[fd].getNickName(), cmds[3]));
+                    }
 
-                        // 유저에게 op 권한 부여
-                        send(fd, "MODE :+o\r\n", 9, 0);
-                    } else {
-                        send_fd(fd, RPL_482_CHANOPRIVSNEEDED(_clients[fd].getNickName(), cmds[1]));
-                    }
-                } else if (cmds[2] == "-o") {
-                    if (cmds.size() < 4) {
-                        // 닉네임이 들어왔는지 확인
-                        send_fd(fd, RPL_461_NEEDMOREPARAMS(_clients[fd].getNickName(), "MODE"));
-                    } else if (_channels[cmds[1]].isClientOP(fd)) {
-                        // op만 op 해제 가능
-                        // 유저에게 op 권한 해제
-                        _channels[cmds[1]].removeClientFromOPList(fd);
-                        send(fd, "MODE :-o\r\n", 10, 0);
-                    } else {
-                        send_fd(fd, RPL_482_CHANOPRIVSNEEDED(_clients[fd].getNickName(), cmds[1]));
-                    }
-                } else if (cmds[2] == "+t") {
-                    // op만 토픽 보호 설정 가능
-                    // 유저가 op인지 확인
-                    if (_channels[cmds[1]].isClientOP(fd)) {
-                        _channels[cmds[1]].setIsTopicProtected(true);
-                        send(fd, "MODE :+t\r\n", 9, 0);
-                    } else {
-                        send_fd(fd, RPL_482_CHANOPRIVSNEEDED(_clients[fd].getNickName(), cmds[1]));
-                    }
-                } else if (cmds[2] == "-t") {
-                    // 채널에 토픽 해제
-                    // 유저가 op인지 확인
-                    if (_channels[cmds[1]].isClientOP(fd)) {
-                        _channels[cmds[1]].setIsTopicProtected(false);
-                        send(fd, "MODE :-t\r\n", 10, 0);
-                    } else {
-                        send_fd(fd, RPL_482_CHANOPRIVSNEEDED(_clients[fd].getNickName(), cmds[1]));
-                    }
-                } else if (cmds[2] == "+l") {
-                    // 채널에 인원제한 설정
-                    // 유저가 op인지 확인
-                    if (_channels[cmds[1]].isClientOP(fd)) {
-                        _channels[cmds[1]].setIsUserLimitSet(true);
-                        send(fd, "MODE :+l\r\n", 9, 0);
-                    } else {
-                        send_fd(fd, RPL_482_CHANOPRIVSNEEDED(_clients[fd].getNickName(), cmds[1]));
-                    }
-                } else if (cmds[2] == "-l") {
-                    // 채널에 인원제한 해제
-                    // 유저가 op인지 확인
-                    if (_channels[cmds[1]].isClientOP(fd)) {
-                        _channels[cmds[1]].setIsUserLimitSet(false);
-                        send(fd, "MODE :-l\r\n", 10, 0);
-                    } else {
-                        send_fd(fd, RPL_482_CHANOPRIVSNEEDED(_clients[fd].getNickName(), cmds[1]));
-                    }
-                } else if (cmds[2] == "+k") {
-                    // 채널에 비밀번호 설정
-                    // 유저가 op인지 확인
-                    if (_channels[cmds[1]].isClientOP(fd)) {
-                        _channels[cmds[1]].setIsPasswordSet(true);
-                        _channels[cmds[1]].setPassword(cmds[3]);
-                        send(fd, "MODE :+k\r\n", 9, 0);
-                    } else {
-                        send_fd(fd, RPL_482_CHANOPRIVSNEEDED(_clients[fd].getNickName(), cmds[1]));
-                    }
-                } else if (cmds[2] == "-k") {
-                    // 채널에 비밀번호 해제
-                    // 유저가 op인지 확인
-                    if (_channels[cmds[1]].isClientOP(fd)) {
-                        _channels[cmds[1]].setIsPasswordSet(false);
-                        _channels[cmds[1]].setPassword("");
-                        send(fd, "MODE :-k\r\n", 10, 0);
-                    } else {
-                        send_fd(fd, RPL_482_CHANOPRIVSNEEDED(_clients[fd].getNickName(), cmds[1]));
-                    }
+                    // 유저에게 op 권한 부여
+                    send(fd, "MODE :+o\r\n", 9, 0);
                 } else {
-                    send_fd(fd, RPL_472_UNKNOWNMODE(cmds[2]));
+                    send_fd(fd, RPL_482_CHANOPRIVSNEEDED(_clients[fd].getNickName(), cmds[1]));
+                }
+            } else if (cmds[2] == "-o") {
+                if (cmds.size() < 4) {
+                    // 닉네임이 들어왔는지 확인
+                    send_fd(fd, RPL_461_NEEDMOREPARAMS(_clients[fd].getNickName(), "MODE"));
+                } else if (_channels[cmds[1]].isClientOP(fd)) {
+                    // op만 op 해제 가능
+                    // 유저에게 op 권한 해제
+                    _channels[cmds[1]].removeClientFromOPList(fd);
+                    send(fd, "MODE :-o\r\n", 10, 0);
+                } else {
+                    send_fd(fd, RPL_482_CHANOPRIVSNEEDED(_clients[fd].getNickName(), cmds[1]));
+                }
+            } else if (cmds[2] == "+t") {
+                // op만 토픽 보호 설정 가능
+                // 유저가 op인지 확인
+                if (_channels[cmds[1]].isClientOP(fd)) {
+                    _channels[cmds[1]].setIsTopicProtected(true);
+                    send(fd, "MODE :+t\r\n", 9, 0);
+                } else {
+                    send_fd(fd, RPL_482_CHANOPRIVSNEEDED(_clients[fd].getNickName(), cmds[1]));
+                }
+            } else if (cmds[2] == "-t") {
+                // 채널에 토픽 해제
+                // 유저가 op인지 확인
+                if (_channels[cmds[1]].isClientOP(fd)) {
+                    _channels[cmds[1]].setIsTopicProtected(false);
+                    send(fd, "MODE :-t\r\n", 10, 0);
+                } else {
+                    send_fd(fd, RPL_482_CHANOPRIVSNEEDED(_clients[fd].getNickName(), cmds[1]));
+                }
+            } else if (cmds[2] == "+l") {
+                // 채널에 인원제한 설정
+                // 유저가 op인지 확인
+                if (_channels[cmds[1]].isClientOP(fd)) {
+                    _channels[cmds[1]].setIsUserLimitSet(true);
+                    send(fd, "MODE :+l\r\n", 9, 0);
+                } else {
+                    send_fd(fd, RPL_482_CHANOPRIVSNEEDED(_clients[fd].getNickName(), cmds[1]));
+                }
+            } else if (cmds[2] == "-l") {
+                // 채널에 인원제한 해제
+                // 유저가 op인지 확인
+                if (_channels[cmds[1]].isClientOP(fd)) {
+                    _channels[cmds[1]].setIsUserLimitSet(false);
+                    send(fd, "MODE :-l\r\n", 10, 0);
+                } else {
+                    send_fd(fd, RPL_482_CHANOPRIVSNEEDED(_clients[fd].getNickName(), cmds[1]));
+                }
+            } else if (cmds[2] == "+k") {
+                // 채널에 비밀번호 설정
+                // 유저가 op인지 확인
+                if (_channels[cmds[1]].isClientOP(fd)) {
+                    _channels[cmds[1]].setIsPasswordSet(true);
+                    _channels[cmds[1]].setPassword(cmds[3]);
+                    send(fd, "MODE :+k\r\n", 9, 0);
+                } else {
+                    send_fd(fd, RPL_482_CHANOPRIVSNEEDED(_clients[fd].getNickName(), cmds[1]));
+                }
+            } else if (cmds[2] == "-k") {
+                // 채널에 비밀번호 해제
+                // 유저가 op인지 확인
+                if (_channels[cmds[1]].isClientOP(fd)) {
+                    _channels[cmds[1]].setIsPasswordSet(false);
+                    _channels[cmds[1]].setPassword("");
+                    send(fd, "MODE :-k\r\n", 10, 0);
+                } else {
+                    send_fd(fd, RPL_482_CHANOPRIVSNEEDED(_clients[fd].getNickName(), cmds[1]));
                 }
             } else {
-                // 채널이 존재하지 않는 경우
-                send_fd(fd, RPL_403_NOSUCHCHANNEL(_clients[fd].getNickName(), cmds[1]));
+                send_fd(fd, RPL_472_UNKNOWNMODE(cmds[2]));
             }
         }
     }
 }
+
 
 void Server::cmdTopic(int fd, std::vector<std::string> cmds) {
     if (cmds.size() < 3)

@@ -110,9 +110,6 @@ public:
 	// set client's servername
 	void setServerName(std::string serverName);
 
-	// set client's password
-	void setPassword(std::string password);
-
 	// set PASS command received
 	void setIsPasswordSet(bool isPasswordSet);
 
