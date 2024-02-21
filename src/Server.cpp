@@ -355,7 +355,7 @@ void Server::cmdJoin(int fd, std::vector<std::string> cmds) {
 
             }
             // 채널에 새로운 클라이언트 입장 메시지 전송
-            _channels[cmds[1]].sendToAllClients(fd, RPL_JOIN(_clients[fd].getNickName(), _clients[fd].getHostName(), _clients[fd].getServerName(), cmds[1]));
+            _channels[cmds[1]].sendToAllClients(0, RPL_JOIN(_clients[fd].getNickName(), _clients[fd].getHostName(), _clients[fd].getServerName(), cmds[1]));
 
             // 채널에 존재하는 클라이언트 목록 전송
             send_fd(fd, RPL_353_NAMREPLY(_clients[fd].getNickName(), cmds[1], _channels[cmds[1]].getChannelClients()));
@@ -383,6 +383,7 @@ void Server::cmdPart(int fd, std::vector<std::string> cmds) {
             _clients[fd].removeChannel(cmds[1]);
 
             // 채널에 메시지 전송
+            send_fd(fd, RPL_PART(_clients[fd].getNickName(), _clients[fd].getHostName(), _clients[fd].getServerName(), cmds[1]));
             _channels[cmds[1]].sendToAllClients(fd,
                                                 RPL_PART(_clients[fd].getNickName(), _clients[fd].getHostName(), _clients[fd].getServerName(), cmds[1]));
         }
@@ -509,7 +510,7 @@ void Server::cmdMode(int fd, std::vector<std::string> cmds) {
                                 _channels[cmds[1]].addClientToOPList(findFdByNick(cmds[3]));
 
                                 // 채널에 전송
-                                _channels[cmds[1]].sendToAllClients(0, RPL_MODE(_clients[fd].getNickName(), cmds[1], "-o"));
+                                _channels[cmds[1]].sendToAllClients(0, RPL_MODEWITHPARAM(_clients[fd].getNickName(), cmds[1], "-o", cmds[3]));
                             } else {
                                 // 유저가 이미 op가 아닌 경우 권한없음 메시지
                                 send_fd(fd, RPL_482_CHANOPRIVSNEEDED(_clients[fd].getNickName(), cmds[1]));
@@ -554,12 +555,13 @@ void Server::cmdMode(int fd, std::vector<std::string> cmds) {
 
                         // 들어온 인자가 숫자인지 확인
                         if (cmds[3].find_first_not_of("1234567890") != std::string::npos) {
-                            send_fd(fd, RPL_461_NEEDMOREPARAMS(_clients[fd].getNickName(), "MODE"));
+                            send_fd(fd, RPL_461_NEEDMOREPARAMS(_clients[fd].getNickName(), "MODE")); //에러메세지 수정
                         } else {
 
                             // 채널의 현재 인원보다 제한 인원이 큰지 확인
-                            if ((int) _channels[cmds[1]].getChannelClients().size() > std::atoi(cmds[3].c_str())) {
-                                send_fd(fd, RPL_461_NEEDMOREPARAMS(_clients[fd].getNickName(), "MODE"));
+                            if ((int) _channels[cmds[1]].getClients().size() > std::atoi(cmds[3].c_str())) {
+                                send_fd(fd, RPL_461_NEEDMOREPARAMS(_clients[fd].getNickName(), "MODE")); // 에러메세지 수정
+                                return ;
                             }
 
                             // 인원제한 설정
