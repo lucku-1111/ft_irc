@@ -81,7 +81,7 @@ public:
     void cmdQuit(int fd, int i);
 
     ///// Utility Functions /////
-    bool isClientInServer(std::string nick);
+    bool isNickInServer(std::string nick);
 };
 
 std::vector<std::string> splitMsg(std::string line);

@@ -410,7 +410,7 @@ void Server::cmdMode(int fd, std::vector<std::string> cmds) {
             if (_channels.find(cmds[1]) != _channels.end()) {
                 if (cmds[2] == "+i") {
                     // 채널에 초대전용 설정
-                    if (_channels[cmds[1]].isClientOP(fd)) {
+                    if (_channels[cmds[1]].isFdInOPList(fd)) {
                         // 유저가 op인지 확인
                         // 채널에 초대전용 설정
                         _channels[cmds[1]].setIsInviteOnly(true);
@@ -420,7 +420,7 @@ void Server::cmdMode(int fd, std::vector<std::string> cmds) {
                     }
                 } else if (cmds[2] == "-i") {
                     // 채널에 초대전용 해제
-                    if (_channels[cmds[1]].isClientOP(fd)) {
+                    if (_channels[cmds[1]].isFdInOPList(fd)) {
                         // 유저가 op인지 확인
                         // 채널에 초대전용 해제
                         _channels[cmds[1]].setIsInviteOnly(false);
@@ -432,11 +432,11 @@ void Server::cmdMode(int fd, std::vector<std::string> cmds) {
                     if (cmds.size() < 4) {
                         // 닉네임이 들어왔는지 확인
                         send_fd(fd, RPL_461_NEEDMOREPARAMS(_clients[fd].getNickName(), "MODE"));
-                    } else if (_channels[cmds[1]].isClientOP(fd)) {
+                    } else if (_channels[cmds[1]].isFdInOPList(fd)) {
                         // 유저가 op인지 확인
 
                         // 유저가 존재하는지 확인
-                        if (isClientInServer(cmds[3])) {
+                        if (isNickInServer(cmds[3])) {
                             // 유저가 존재하는 경우
                             // 유저가 채널에 존재하는지 확인
                             ;
@@ -455,7 +455,7 @@ void Server::cmdMode(int fd, std::vector<std::string> cmds) {
                 if (cmds.size() < 4) {
                     // 닉네임이 들어왔는지 확인
                     send_fd(fd, RPL_461_NEEDMOREPARAMS(_clients[fd].getNickName(), "MODE"));
-                } else if (_channels[cmds[1]].isClientOP(fd)) {
+                } else if (_channels[cmds[1]].isFdInOPList(fd)) {
                     // op만 op 해제 가능
                     // 유저에게 op 권한 해제
                     _channels[cmds[1]].removeClientFromOPList(fd);
@@ -466,7 +466,7 @@ void Server::cmdMode(int fd, std::vector<std::string> cmds) {
             } else if (cmds[2] == "+t") {
                 // op만 토픽 보호 설정 가능
                 // 유저가 op인지 확인
-                if (_channels[cmds[1]].isClientOP(fd)) {
+                if (_channels[cmds[1]].isFdInOPList(fd)) {
                     _channels[cmds[1]].setIsTopicProtected(true);
                     send(fd, "MODE :+t\r\n", 9, 0);
                 } else {
@@ -475,7 +475,7 @@ void Server::cmdMode(int fd, std::vector<std::string> cmds) {
             } else if (cmds[2] == "-t") {
                 // 채널에 토픽 해제
                 // 유저가 op인지 확인
-                if (_channels[cmds[1]].isClientOP(fd)) {
+                if (_channels[cmds[1]].isFdInOPList(fd)) {
                     _channels[cmds[1]].setIsTopicProtected(false);
                     send(fd, "MODE :-t\r\n", 10, 0);
                 } else {
@@ -484,7 +484,7 @@ void Server::cmdMode(int fd, std::vector<std::string> cmds) {
             } else if (cmds[2] == "+l") {
                 // 채널에 인원제한 설정
                 // 유저가 op인지 확인
-                if (_channels[cmds[1]].isClientOP(fd)) {
+                if (_channels[cmds[1]].isFdInOPList(fd)) {
                     _channels[cmds[1]].setIsUserLimitSet(true);
                     send(fd, "MODE :+l\r\n", 9, 0);
                 } else {
@@ -493,7 +493,7 @@ void Server::cmdMode(int fd, std::vector<std::string> cmds) {
             } else if (cmds[2] == "-l") {
                 // 채널에 인원제한 해제
                 // 유저가 op인지 확인
-                if (_channels[cmds[1]].isClientOP(fd)) {
+                if (_channels[cmds[1]].isFdInOPList(fd)) {
                     _channels[cmds[1]].setIsUserLimitSet(false);
                     send(fd, "MODE :-l\r\n", 10, 0);
                 } else {
@@ -502,7 +502,7 @@ void Server::cmdMode(int fd, std::vector<std::string> cmds) {
             } else if (cmds[2] == "+k") {
                 // 채널에 비밀번호 설정
                 // 유저가 op인지 확인
-                if (_channels[cmds[1]].isClientOP(fd)) {
+                if (_channels[cmds[1]].isFdInOPList(fd)) {
                     _channels[cmds[1]].setIsPasswordSet(true);
                     _channels[cmds[1]].setPassword(cmds[3]);
                     send(fd, "MODE :+k\r\n", 9, 0);
@@ -512,7 +512,7 @@ void Server::cmdMode(int fd, std::vector<std::string> cmds) {
             } else if (cmds[2] == "-k") {
                 // 채널에 비밀번호 해제
                 // 유저가 op인지 확인
-                if (_channels[cmds[1]].isClientOP(fd)) {
+                if (_channels[cmds[1]].isFdInOPList(fd)) {
                     _channels[cmds[1]].setIsPasswordSet(false);
                     _channels[cmds[1]].setPassword("");
                     send(fd, "MODE :-k\r\n", 10, 0);
@@ -544,7 +544,7 @@ void Server::cmdTopic(int fd, std::vector<std::string> cmds) {
                     if (_channels[cmds[1]].getIsTopicProtected()) {
                         // 토픽이 보호되는 경우
                         // 유저가 op인지 확인
-                        if (_channels[cmds[1]].isClientOP(fd)) {
+                        if (_channels[cmds[1]].isFdInOPList(fd)) {
                             // 토픽 설정
                             _channels[cmds[1]].setTopic(cmds[2]);
                             send(fd, "TOPIC :End of /NAMES list.\r\n", 27, 0);
@@ -582,7 +582,7 @@ void Server::cmdKick(int fd, std::vector<std::string> cmds) {
             // 채널이 존재하는 경우
             if (_channels.find(cmds[1]) != _channels.end()) {
                 // 유저가 op인지 확인
-                if (_channels[cmds[1]].isClientOP(fd)) {
+                if (_channels[cmds[1]].isFdInOPList(fd)) {
 
                     std::map<int, Client *>::iterator it;
 
@@ -678,7 +678,7 @@ void Server::cmdQuit(int fd, int i) {
     _clients.erase(fd);
 }
 
-bool Server::isClientInServer(std::string nick) {
+bool Server::isNickInServer(std::string nick) {
     std::map<int, Client>::iterator it;
 
     for (it = _clients.begin(); it != _clients.end(); ++it) {
