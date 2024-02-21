@@ -2,10 +2,6 @@
 #define CHANNEL_H
 
 #include "Server.hpp"
-#include "Client.hpp"
-#include <map>
-#include <vector>
-#include <algorithm>
 
 class Client;
 
@@ -26,6 +22,7 @@ private:
 
     // 채널 주제
     std::string _topic;
+
 
     ///// 채널 모드 /////
     // 비밀번호 설정 모드
@@ -96,6 +93,7 @@ public:
 
     void setIsUserLimitSet(bool isUserLimitSet);
 
+
     ///// Method /////
     /// 명령어
     // 자신을 제외한 모든 클라이언트에게 메시지를 보내는 메서드
@@ -103,6 +101,7 @@ public:
 
     // 채널에 있는 클라이언트들을 공백으로 구분해 출력하는 메서드
     std::string getChannelClients();
+
 
     /// 클라이언트 리스트
     // 채널에 클라이언트를 추가하는 메서드
@@ -117,6 +116,7 @@ public:
     // 채널에 fd를 가지는 클라이언트가 있는지 확인하는 메서드
     bool isFdInChannel(int fd);
 
+
     /// OP 리스트
     // OP리스트에 클라이언트 추가
     void addClientToOPList(int fd);
@@ -129,6 +129,7 @@ public:
 
     // 닉네임의 클라이언트가 op인지 확인하는 메서드
     bool isNickInOPList(std::string nick);
+
 
     /// 초대 리스트
     // 초대 리스트에 클라이언트 추가

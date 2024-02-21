@@ -10,12 +10,18 @@
 #include <cstring>
 #include <iostream>
 #include <vector>
+#include <algorithm>
+#include <string>
+#include <map>
+
 #include "Client.hpp"
 #include "Channel.hpp"
-#include <map>
+#include "msgs.hpp"
 
 #define BUF_SIZE 512
 #define MAX_CLIENT 100
+
+extern void sendFd(int fd, std::string str);
 
 class Client;
 
@@ -40,20 +46,20 @@ private:
 
 
 public:
+    ///// Server /////
     Server(int port, std::string pwd);
-
-    void startServ();
 
     void acceptClient();
 
     void recvClient(int i);
 
-    ///// Command Execution /////
-    void executeCommand(int fd, std::vector<std::string> cmds, int idx);
+    void startServ();
 
     ///// Send Functions /////
-
     void sendAll(int fd, std::string msg);
+
+    ///// Command Execution /////
+    void executeCommand(int fd, std::vector<std::string> cmds, int idx);
 
     ///// Command Functions /////
     void cmdPass(int fd, std::vector<std::string> cmds);
@@ -63,7 +69,6 @@ public:
     void cmdUser(int fd, std::vector<std::string> cmds);
 
     void cmdJoin(int fd, std::vector<std::string> cmds);
-    bool validateJoin(int fd, std::vector<std::string> cmds, bool flag);
 
     void cmdPart(int fd, std::vector<std::string> cmds);
 
@@ -86,7 +91,10 @@ public:
 
     int findFdByNick(std::string nick);
 
-    void checkChannelEmpty(Channel& channel);
+    void checkChannelEmpty(Channel &channel);
+
+    bool validateJoin(int fd, std::vector<std::string> cmds, bool flag);
+
 };
 
 std::vector<std::string> splitMsg(std::string line);

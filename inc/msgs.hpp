@@ -1,12 +1,7 @@
 #ifndef MSGS_HPP
 #define MSGS_HPP
 
-#include "Client.hpp"
-#include "Channel.hpp"
 #include "Server.hpp"
-
-
-void send_fd(int fd, std::string str);
 
 const static std::string serverName = "ft_irc";
 const static std::string colonServerName = ":localhost ";
@@ -28,9 +23,6 @@ const static std::string version = "1.0.0";
 
 ///// Channel and User commands /////
 
-// 324: Channel mode
-#define RPL_324_CHANNELMODE(channel, mode) (colonServerName + "324 " + channel + " :channel mode is " + mode + "\r\n")
-
 // 331: No topic is set
 #define RPL_331_NOTOPIC(client, channel) (colonServerName + "331 " + client + " " + channel + " :No topic is set\r\n")
 
@@ -47,17 +39,6 @@ const static std::string version = "1.0.0";
 
 // 366: End of NAMES list
 #define RPL_366_ENDOFNAMES(client, channel) (colonServerName + "366 " + client + " " + channel + " :End of NAMES list\r\n")
-
-///// Server messages /////
-
-// 372: MOTD text line
-#define RPL_372_MOTD(text) (colonServerName + "372 " + client + " :- " + text + "\r\n")
-
-// 375: Start of MOTD command
-#define RPL_375_MOTDSTART(text) (colonServerName + "375 " + client + " :- " + text + " Message of the day - \r\n")
-
-// 376: End of MOTD command
-#define RPL_376_ENDOFMOTD() (colonServerName + "376 " + client + " :End of MOTD command\r\n")
 
 ///// Error and Status messages /////
 
