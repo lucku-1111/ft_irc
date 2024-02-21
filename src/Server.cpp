@@ -682,44 +682,57 @@ void Server::cmdTopic(int fd, std::vector<std::string> cmds) {
 }
 
 void Server::cmdKick(int fd, std::vector<std::string> cmds) {
-    if (cmds.size() < 3)
+    if (cmds.size() < 3) {
+        // 매개변수가 부족한 경우
         send_fd(fd, RPL_461_NEEDMOREPARAMS(_clients[fd].getNickName(), "KICK"));
-    else {
+        return;
+    }
+
+    if (cmds[1][0] != '#') {
         // 채널이름이 #으로 시작하지 않는 경우
-        if (cmds[1][0] != '#')
-            send_fd(fd, RPL_403_NOSUCHCHANNEL(_clients[fd].getNickName(), cmds[1]));
-        else {
-            // 채널이름이 #으로 시작하는 경우
-            // 채널이 존재하는 경우
-            if (_channels.find(cmds[1]) != _channels.end()) {
-                // 유저가 op인지 확인
-                if (_channels[cmds[1]].isFdInOPList(fd)) {
+        send_fd(fd, RPL_403_NOSUCHCHANNEL(_clients[fd].getNickName(), cmds[1]));
+        return;
+    }
+    if (_channels.find(cmds[1]) == _channels.end()) {
+        // 채널이 존재하지 않는 경우
+        send_fd(fd, RPL_403_NOSUCHCHANNEL(_clients[fd].getNickName(), cmds[1]));
+        return;
+    }
+    if (!_channels[cmds[1]].isFdInChannel(fd)) {
+        // 유저가 채널에 속해있지 않은 경우
+        send_fd(fd, RPL_442_NOTONCHANNEL(_clients[fd].getNickName(), cmds[1]));
+        return;
+    }
+    if (!_channels[cmds[1]].isFdInOPList(fd)) {
+        // op가 아닌 경우
+        send_fd(fd, RPL_482_CHANOPRIVSNEEDED(_clients[fd].getNickName(), cmds[1]));
+        return;
+    }
+    if (!_channels[cmds[1]].isFdInChannel(findFdByNick(cmds[2]))) {
+        // 킥할 유저가 채널에 속해있지 않은 경우
+        send_fd(fd, RPL_441_USERNOTINCHANNEL(_clients[fd].getNickName(), cmds[2]));
+        return;
+    }
+    if (_channels[cmds[1]].isFdInOPList(findFdByNick(cmds[2]))) {
+        // 킥할 유저가 op인 경우
+        send_fd(fd, RPL_482_CHANOPRIVSNEEDED(_clients[fd].getNickName(), cmds[1]));
+        return;
+    }
 
-                    std::map<int, Client *>::iterator it;
+    std::string kickMsg = "";
+    if (cmds.size() > 3) {
+        kickMsg = cmds[3];
+    }
 
-                    // 킥할 유저가 존재하는 경우
-                    for (it = _channels[cmds[1]].getClients().begin(); it != _channels[cmds[1]].getClients().end(); ++it) {
-                        if (it->second->getNickName() == cmds[2]) {
-                            // 킥할 유저 제거
-                            _channels[cmds[1]].removeClient(it->first);
-                            // 킥 메시지 전송
-                            send(fd, "KICK :End of /NAMES list.\r\n", 27, 0);
-                            break;
-                        }
-                    }
+    // 킥 메시지 전송
+    _channels[cmds[1]].sendToAllClients(0, RPL_KICK(_clients[fd].getNickName(), _clients[fd].getHostName(), _clients[fd].getServerName(), cmds[1], cmds[2], kickMsg));
 
-                    if (it == _channels[cmds[1]].getClients().end()) {
-                        // 킥할 유저가 존재하지 않는 경우
-                        send(fd, "441 KICK :They aren't on that channel\r\n", 40, 0);
-                    }
-                } else {
-                    send(fd, "482 KICK :You're not channel operator\r\n", 39, 0);
-                }
-            } else {
-                // 채널이 존재하지 않는 경우
-                send_fd(fd, RPL_403_NOSUCHCHANNEL(_clients[fd].getNickName(), cmds[1]));
-            }
-        }
+    // 채널에서 클라이언트 제거
+    _channels[cmds[1]].removeClient(findFdByNick(cmds[2]));
+
+    // 초대리스트에 유저가 존재하는 경우 제거
+    if (_channels[cmds[1]].isNickInInviteList(cmds[2])) {
+        _channels[cmds[1]].removeClientFromInviteList(findFdByNick(cmds[2]));
     }
 }
 
@@ -766,7 +779,7 @@ void Server::cmdInvite(int fd, std::vector<std::string> cmds) {
     }
 
     // invite list에 유저 추가
-    _channels[cmds[1]].addInviteClient(findFdByNick(cmds[2]));
+    _channels[cmds[1]].addClientToInviteList(findFdByNick(cmds[2]));
 
     // 초대 메시지 전송
     send_fd(findFdByNick(cmds[2]), RPL_341_INVITE(_clients[fd].getNickName(), cmds[1]));

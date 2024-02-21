@@ -76,6 +76,9 @@ const static std::string version = "1.0.0";
 // 433: Nickname is already in use
 #define RPL_433_ERR_NICKNAMEINUSE(client) (colonServerName + "433 " + client + " :Nickname is already in use\r\n")
 
+// 441: User not in channel
+#define RPL_441_USERNOTINCHANNEL(client, channel) (colonServerName + "441 " + client + " " + channel + " :User not in channel\r\n")
+
 // 442: You're not on that channel
 #define RPL_442_NOTONCHANNEL(client, channel) (colonServerName + "442 " + client + " " + channel + " :You're not on that channel\r\n")
 
@@ -122,6 +125,9 @@ const static std::string version = "1.0.0";
 
 // Response to PART
 #define RPL_PART(nick, hostname, servername, channel) ":" + nick + "!" + hostname + "@" + servername + " PART :" + channel + "\r\n"
+
+// Response to KICK
+#define RPL_KICK(nick, hostname, servername, channel, kickuser, msg) ":" + nick + "!" + hostname + "@" + servername + " KICK " + channel + " " + kickuser + " :" + msg + "\r\n"
 
 // Response to pivate message
 #define RPL_PRIVMSG(nick, user, servername, channel, msg) ":" + nick + "!" + user + "@" + servername + " PRIVMSG " + channel + " :" + msg + "\r\n"
