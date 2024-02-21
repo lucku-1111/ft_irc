@@ -400,8 +400,9 @@ void Server::cmdMode(int fd, std::vector<std::string> cmds) {
             if (_channels.find(cmds[1]) != _channels.end()) {
                 if (cmds[2] == "+i") {
                     // 채널에 초대전용 설정
-                    // 유저가 op인지 확인
                     if (_channels[cmds[1]].isClientOP(fd)) {
+                        // 유저가 op인지 확인
+                        // 채널에 초대전용 설정
                         _channels[cmds[1]].setIsInviteOnly(true);
                         send(fd, "MODE :+i\r\n", 9, 0);
                     } else {
@@ -409,12 +410,13 @@ void Server::cmdMode(int fd, std::vector<std::string> cmds) {
                     }
                 } else if (cmds[2] == "-i") {
                     // 채널에 초대전용 해제
-                    // 유저가 op인지 확인
                     if (_channels[cmds[1]].isClientOP(fd)) {
+                        // 유저가 op인지 확인
+                        // 채널에 초대전용 해제
                         _channels[cmds[1]].setIsInviteOnly(false);
                         send(fd, "MODE :-i\r\n", 10, 0);
                     } else {
-                        send(fd, "482 MODE :You're not channel operator\r\n", 38, 0);
+                        send_fd(fd, RPL_482_CHANOPRIVSNEEDED(_clients[fd].getNickName(), cmds[1]));
                     }
                 } else if (cmds[2] == "+o") {
                     if (cmds.size() < 4) {
@@ -422,32 +424,48 @@ void Server::cmdMode(int fd, std::vector<std::string> cmds) {
                         send_fd(fd, RPL_461_NEEDMOREPARAMS(_clients[fd].getNickName(), "MODE"));
                     } else if (_channels[cmds[1]].isClientOP(fd)) {
                         // 유저가 op인지 확인
+
+                        // 유저가 존재하는지 확인
+                        if (isClientInServer(cmds[3])) {
+                            // 유저가 존재하는 경우
+                            // 유저가 채널에 존재하는지 확인
+                            if (_channels[cmds[1]].isClientInChannel(cmds[3])) {
+                                // 유저가 채널에 존재하는 경우
+                                // 유저에게 op 권한 부여
+                                send_fd(fd, RPL_482_CHANOPRIVSNEEDED(_clients[fd].getNickName(), cmds[1]));
+                            } else {
+                                send_fd(fd, RPL_441_USERNOTINCHANNEL(_clients[fd].getNickName(), cmds[3], cmds[1]));
+                            }
+                        } else {
+                            // 유저가 존재하지 않는 경우
+                            send_fd(fd, RPL_401_NOSUCHNICK(_clients[fd].getNickName(), cmds[3]));
+                        }
+
                         // 유저에게 op 권한 부여
-                        _channels[cmds[1]].addClientToOPList(fd);
                         send(fd, "MODE :+o\r\n", 9, 0);
                     } else {
-                        send(fd, "482 MODE :You're not channel operator\r\n", 38, 0);
+                        send_fd(fd, RPL_482_CHANOPRIVSNEEDED(_clients[fd].getNickName(), cmds[1]));
                     }
                 } else if (cmds[2] == "-o") {
                     if (cmds.size() < 4) {
                         // 닉네임이 들어왔는지 확인
                         send_fd(fd, RPL_461_NEEDMOREPARAMS(_clients[fd].getNickName(), "MODE"));
                     } else if (_channels[cmds[1]].isClientOP(fd)) {
+                        // op만 op 해제 가능
                         // 유저에게 op 권한 해제
-                        // 유저가 op인지 확인
                         _channels[cmds[1]].removeClientFromOPList(fd);
                         send(fd, "MODE :-o\r\n", 10, 0);
                     } else {
-                        send(fd, "482 MODE :You're not channel operator\r\n", 38, 0);
+                        send_fd(fd, RPL_482_CHANOPRIVSNEEDED(_clients[fd].getNickName(), cmds[1]));
                     }
                 } else if (cmds[2] == "+t") {
-                    // op만 토픽 설정 가능
+                    // op만 토픽 보호 설정 가능
                     // 유저가 op인지 확인
                     if (_channels[cmds[1]].isClientOP(fd)) {
                         _channels[cmds[1]].setIsTopicProtected(true);
                         send(fd, "MODE :+t\r\n", 9, 0);
                     } else {
-                        send(fd, "482 MODE :You're not channel operator\r\n", 38, 0);
+                        send_fd(fd, RPL_482_CHANOPRIVSNEEDED(_clients[fd].getNickName(), cmds[1]));
                     }
                 } else if (cmds[2] == "-t") {
                     // 채널에 토픽 해제
@@ -456,7 +474,7 @@ void Server::cmdMode(int fd, std::vector<std::string> cmds) {
                         _channels[cmds[1]].setIsTopicProtected(false);
                         send(fd, "MODE :-t\r\n", 10, 0);
                     } else {
-                        send(fd, "482 MODE :You're not channel operator\r\n", 38, 0);
+                        send_fd(fd, RPL_482_CHANOPRIVSNEEDED(_clients[fd].getNickName(), cmds[1]));
                     }
                 } else if (cmds[2] == "+l") {
                     // 채널에 인원제한 설정
@@ -465,7 +483,7 @@ void Server::cmdMode(int fd, std::vector<std::string> cmds) {
                         _channels[cmds[1]].setIsUserLimitSet(true);
                         send(fd, "MODE :+l\r\n", 9, 0);
                     } else {
-                        send(fd, "482 MODE :You're not channel operator\r\n", 38, 0);
+                        send_fd(fd, RPL_482_CHANOPRIVSNEEDED(_clients[fd].getNickName(), cmds[1]));
                     }
                 } else if (cmds[2] == "-l") {
                     // 채널에 인원제한 해제
@@ -474,7 +492,7 @@ void Server::cmdMode(int fd, std::vector<std::string> cmds) {
                         _channels[cmds[1]].setIsUserLimitSet(false);
                         send(fd, "MODE :-l\r\n", 10, 0);
                     } else {
-                        send(fd, "482 MODE :You're not channel operator\r\n", 38, 0);
+                        send_fd(fd, RPL_482_CHANOPRIVSNEEDED(_clients[fd].getNickName(), cmds[1]));
                     }
                 } else if (cmds[2] == "+k") {
                     // 채널에 비밀번호 설정
@@ -484,7 +502,7 @@ void Server::cmdMode(int fd, std::vector<std::string> cmds) {
                         _channels[cmds[1]].setPassword(cmds[3]);
                         send(fd, "MODE :+k\r\n", 9, 0);
                     } else {
-                        send(fd, "482 MODE :You're not channel operator\r\n", 38, 0);
+                        send_fd(fd, RPL_482_CHANOPRIVSNEEDED(_clients[fd].getNickName(), cmds[1]));
                     }
                 } else if (cmds[2] == "-k") {
                     // 채널에 비밀번호 해제
@@ -494,11 +512,14 @@ void Server::cmdMode(int fd, std::vector<std::string> cmds) {
                         _channels[cmds[1]].setPassword("");
                         send(fd, "MODE :-k\r\n", 10, 0);
                     } else {
-                        send(fd, "482 MODE :You're not channel operator\r\n", 38, 0);
+                        send_fd(fd, RPL_482_CHANOPRIVSNEEDED(_clients[fd].getNickName(), cmds[1]));
                     }
                 } else {
-                    send(fd, "472 MODE :Unknown mode\r\n", 26, 0);
+                    send_fd(fd, RPL_472_UNKNOWNMODE(cmds[2]));
                 }
+            } else {
+                // 채널이 존재하지 않는 경우
+                send_fd(fd, RPL_403_NOSUCHCHANNEL(_clients[fd].getNickName(), cmds[1]));
             }
         }
     }
@@ -598,13 +619,15 @@ void Server::cmdInvite(int fd, std::vector<std::string> cmds) {
             send_fd(fd, RPL_403_NOSUCHCHANNEL(_clients[fd].getNickName(), cmds[1]));
         else {
             // 채널이름이 #으로 시작하는 경우
-            // 채널이 존재하는 경우
+            // 채널 이름 검색
             if (_channels.find(cmds[1]) != _channels.end()) {
+                // 채널이 존재하는 경우
                 // 초대전용 채널인지 확인
                 if (_channels[cmds[1]].getIsInviteOnly()) {
-                    // 초대할 유저가 존재하는 경우
+                    // 초대전용 채널인 경우
                     std::map<int, Client>::iterator it;
 
+                    // 초대할 유저가 존재하는 경우
                     for (it = _clients.begin(); it != _clients.end(); ++it) {
                         if (it->second.getNickName() == cmds[2]) {
                             // 초대할 유저 추가
@@ -651,4 +674,14 @@ void Server::cmdQuit(int fd, int i) {
         it->second.removeClient(fd);
     }
     _clients.erase(fd);
+}
+
+bool Server::isClientInServer(std::string nick) {
+    std::map<int, Client>::iterator it;
+
+    for (it = _clients.begin(); it != _clients.end(); ++it) {
+        if (it->second.getNickName() == nick)
+            return (true);
+    }
+    return (false);
 }

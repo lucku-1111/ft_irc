@@ -26,9 +26,10 @@ const static std::string version = "1.0.0";
 #define RPL_004_SERVERINFO(client) (colonServerName + "004 " + client + " " + serverName + version + "- itkol " + "\r\n")
 
 
-///// Error messages /////
-
 ///// Channel and User commands /////
+
+// 324: Channel mode
+#define RPL_324_CHANNELMODE(channel, mode) (colonServerName + "324 " + channel + " :channel mode is " + mode + "\r\n")
 
 // 331: No topic is set
 #define RPL_331_NOTOPIC(channel) (colonServerName + "331 " + client + " " + channel + " :No topic is set\r\n")
@@ -79,7 +80,7 @@ const static std::string version = "1.0.0";
 #define RPL_464_PASSWDMISMATCH() (colonServerName + "464 " + ":Password incorrect\r\n")
 
 // 472: Unknown MODE flag
-#define RPL_472_UNKNOWNMODE(char) (colonServerName + "472 " + client + " " + char + " :is unknown mode char to me\r\n")
+#define RPL_472_UNKNOWNMODE(mode) (colonServerName + "472 " +  mode + " :is unknown mode\r\n")
 
 // 473: Cannot join channel (+i)
 #define RPL_473_INVITEONLYCHAN(channel) (colonServerName + "473 " + client + " " + channel + " :Cannot join channel (+i)\r\n")
@@ -102,6 +103,10 @@ const static std::string version = "1.0.0";
 
 // Response to pivate message
 #define RPL_PRIVMSG(nick, user, servername, channel, msg) ":" + nick + "!" + user + "@" + servername + " PRIVMSG " + channel + " :" + msg + "\r\n"
+
+// Response to Topic
+#define RPL_TOPIC(nick, channel, topic) ":" + nick + " TOPIC " + channel + " :" + topic + "\r\n"
+
 
 // Pong message
 #define RPL_PONG(client) (colonServerName + "PONG " + serverName + " " + colonServerName)

@@ -167,7 +167,7 @@ void Channel::addOperator(int fd) {
 void Channel::sendToAllClients(int fd, std::string message) {
     std::map<int, Client *>::iterator it;
 
-    // 자신을 제외한 모든 클라이언트에게 메시지를 보냄
+    // input으로 받은 fd를 제외한 모든 클라이언트에게 메시지를 보냄
     for (it = _clients.begin(); it != _clients.end(); it++) {
         if (it->first != fd)
             send_fd(it->first, message);
