@@ -294,7 +294,7 @@ bool Server::validateJoin(int fd, std::vector<std::string> cmds, bool flag) {
             send_fd(fd, RPL_443_ERR_USERONCHANNEL(_clients[fd].getNickName(), cmds[1]));
             return (false);
         }
-        if (chan.getIsUserLimitSet() && (int)clientList.size() == chan.getUserLimit()) {
+        if (chan.getIsUserLimitSet() && (int) clientList.size() == chan.getUserLimit()) {
             send_fd(fd, RPL_471_ERR_CHANNELISFULL(_clients[fd].getNickName(), cmds[1]));
             return (false);
         }
@@ -307,8 +307,7 @@ bool Server::validateJoin(int fd, std::vector<std::string> cmds, bool flag) {
             return (false);
         }
         return (true);
-    }
-    else {
+    } else {
         std::string name = cmds[1].erase(0, 1);
 
         if (name.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_") != std::string::npos) {
@@ -331,7 +330,7 @@ void Server::cmdJoin(int fd, std::vector<std::string> cmds) {
             // 채널이름이 이미 존재하는 경우
             if (_channels.find(cmds[1]) != _channels.end()) {
                 if (!validateJoin(fd, cmds, true)) //예외처리
-                    return ;
+                    return;
                 // 채널에 클라이언트 추가
                 _channels[cmds[1]].addClient(fd, &_clients[fd]);
 
@@ -339,7 +338,7 @@ void Server::cmdJoin(int fd, std::vector<std::string> cmds) {
                 _clients[fd].addChannel(cmds[1], &_channels[cmds[1]]);
             } else {
                 if (!validateJoin(fd, cmds, false)) //채널이름 체크
-                    return ;
+                    return;
                 // 채널이름이 존재하지 않는 경우
                 // 채널 생성
 
@@ -560,7 +559,7 @@ void Server::cmdMode(int fd, std::vector<std::string> cmds) {
                         } else {
 
                             // 채널의 현재 인원보다 제한 인원이 큰지 확인
-                            if (_channels[cmds[1]].getChannelClients().size() > std::stoi(cmds[3])) {
+                            if ((int) _channels[cmds[1]].getChannelClients().size() > std::atoi(cmds[3].c_str())) {
                                 send_fd(fd, RPL_461_NEEDMOREPARAMS(_clients[fd].getNickName(), "MODE"));
                             }
 
