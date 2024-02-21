@@ -82,6 +82,8 @@ public:
 
     ///// Utility Functions /////
     bool isNickInServer(std::string nick);
+
+    int findFdByNick(std::string nick);
 };
 
 std::vector<std::string> splitMsg(std::string line);

@@ -228,3 +228,14 @@ bool Channel::isFdInChannel(int fd) {
 	}
 	return false;
 }
+
+bool Channel::isNickInOPList(std::string nick) {
+	std::map<int, Client *>::iterator it;
+	for (it = _clients.begin(); it != _clients.end(); it++) {
+		if (it->second->getNickName() == nick) {
+			if (isFdInOPList(it->first))
+				return true;
+		}
+	}
+	return false;
+}
