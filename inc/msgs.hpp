@@ -107,7 +107,7 @@ const static std::string version = "1.0.0";
 #define RPL_ERR_BADCHANNELNAME(client, channel) (colonServerName + "476 " + client + " " + channel + " :Bad Channel Name\r\n")
 
 // 477: Channel does not support channel modes
-#define RPL_477_NOCHANMODES(channel, mode) (colonServerName + "477 " + client + " " + channel + " : channel does not support "+ mode + "mode\r\n")
+#define RPL_477_NOCHANMODES(client, channel, mode) (colonServerName + "477 " + client + " " + channel + " : channel does not support "+ mode + "mode\r\n")
 
 // 482: Not channel operator
 #define RPL_482_CHANOPRIVSNEEDED(client, channel) (colonServerName + "482 " + client + " " + channel + " :You're not channel operator\r\n")

@@ -377,7 +377,7 @@ void Server::cmdPart(int fd, std::vector<std::string> cmds) {
             // 채널에 클라이언트가 존재하는지 체크
             if (!_channels[cmds[1]].isFdInChannel(fd)) {
                 send_fd(fd, RPL_442_NOTONCHANNEL(_clients[fd].getNickName(), cmds[1]));
-                return ;
+                return;
             }
             // 채널에서 클라이언트 제거
             _channels[cmds[1]].removeClient(fd);
@@ -389,10 +389,8 @@ void Server::cmdPart(int fd, std::vector<std::string> cmds) {
 
             // 채널에 메시지 전송
             send_fd(fd, RPL_PART(_clients[fd].getNickName(), _clients[fd].getHostName(), _clients[fd].getServerName(), cmds[1]));
-            _channels[cmds[1]].sendToAllClients(fd,
-                                                RPL_PART(_clients[fd].getNickName(), _clients[fd].getHostName(), _clients[fd].getServerName(), cmds[1]));
-        }
-        else {
+            _channels[cmds[1]].sendToAllClients(fd, RPL_PART(_clients[fd].getNickName(), _clients[fd].getHostName(), _clients[fd].getServerName(), cmds[1]));
+        } else {
             // 채널이름이 존재하지 않는 경우
             send_fd(fd, RPL_403_NOSUCHCHANNEL(_clients[fd].getNickName(), cmds[1]));
         }
@@ -567,7 +565,7 @@ void Server::cmdMode(int fd, std::vector<std::string> cmds) {
                             // 채널의 현재 인원보다 제한 인원이 큰지 확인
                             if ((int) _channels[cmds[1]].getClients().size() > std::atoi(cmds[3].c_str())) {
                                 send_fd(fd, RPL_461_NEEDMOREPARAMS(_clients[fd].getNickName(), "MODE")); // 에러메세지 수정
-                                return ;
+                                return;
                             }
 
                             // 인원제한 설정
@@ -647,17 +645,17 @@ void Server::cmdMode(int fd, std::vector<std::string> cmds) {
 void Server::cmdTopic(int fd, std::vector<std::string> cmds) {
     if (cmds.size() < 2) {
         send_fd(fd, RPL_461_NEEDMOREPARAMS(_clients[fd].getNickName(), "TOPIC"));
-        return ;
+        return;
     }
     // 채널이 없는 경우
     if (_channels.find(cmds[1]) == _channels.end()) {
         send_fd(fd, RPL_403_NOSUCHCHANNEL(_clients[fd].getNickName(), cmds[1]));
-        return ;
+        return;
     }
     // 채널에 속한 사용자가 아닌 경우
     if (!_channels[cmds[1]].isFdInChannel(fd)) {
         send_fd(fd, RPL_442_NOTONCHANNEL(_clients[fd].getNickName(), cmds[1]));
-        return ;
+        return;
     }
     // 토픽 출력 (매개변수 2개)
     if (cmds.size() == 2) {
@@ -665,18 +663,18 @@ void Server::cmdTopic(int fd, std::vector<std::string> cmds) {
             send_fd(fd, RPL_331_NOTOPIC(_clients[fd].getNickName(), cmds[1]));
         else
             send_fd(fd, RPL_332_TOPIC(_clients[fd].getNickName(), cmds[1], _channels[cmds[1]].getTopic()));
-        return ;
+        return;
     }
     // 매개변수 3개
     // 권한이 없는 경우
     if (_channels[cmds[1]].getIsTopicProtected() && !_channels[cmds[1]].isFdInOPList(fd)) {
         send_fd(fd, RPL_482_CHANOPRIVSNEEDED(_clients[fd].getNickName(), cmds[1]));
-        return ;
+        return;
     }
     // 토픽을 해제하는 경우
     if (cmds[2] == "") {
         _channels[cmds[1]].setTopic(cmds[2]);
-        return ;
+        return;
     }
     // 토픽 설정
     _channels[cmds[1]].setTopic(cmds[2]);
@@ -726,57 +724,62 @@ void Server::cmdKick(int fd, std::vector<std::string> cmds) {
 }
 
 void Server::cmdInvite(int fd, std::vector<std::string> cmds) {
-    if (cmds.size() < 3)
+    if (cmds.size() < 3) {
+        // 매개변수가 부족한 경우
         send_fd(fd, RPL_461_NEEDMOREPARAMS(_clients[fd].getNickName(), "INVITE"));
-    else {
-        // 채널이름이 #으로 시작하지 않는 경우
-        if (cmds[1][0] != '#')
-            send_fd(fd, RPL_403_NOSUCHCHANNEL(_clients[fd].getNickName(), cmds[1]));
-        else {
-            // 채널이름이 #으로 시작하는 경우
-            // 채널 이름 검색
-            if (_channels.find(cmds[1]) != _channels.end()) {
-                // 채널이 존재하는 경우
-                // 초대전용 채널인지 확인
-                if (_channels[cmds[1]].getIsInviteOnly()) {
-                    // 초대전용 채널인 경우
-                    std::map<int, Client>::iterator it;
-
-                    // 초대할 유저가 존재하는 경우
-                    for (it = _clients.begin(); it != _clients.end(); ++it) {
-                        if (it->second.getNickName() == cmds[2]) {
-                            // 초대할 유저 추가
-                            _channels[cmds[1]].addInviteClient(it->first);
-                            // 초대 메시지 전송
-                            send(fd, "INVITE :End of /NAMES list.\r\n", 28, 0);
-                            break;
-                        }
-                    }
-
-                    if (it == _clients.end()) {
-                        // 초대할 유저가 존재하지 않는 경우
-                        send(fd, "441 INVITE :They aren't on that channel\r\n", 41, 0); // 고쳐야할듯
-
-                    }
-                } else {
-                    // 초대전용 채널이 아닌 경우
-                    send(fd, "482 INVITE :Channel is not invite only\r\n", 41, 0);
-
-                }
-            } else {
-                // 채널이 존재하지 않는 경우
-                send_fd(fd, RPL_403_NOSUCHCHANNEL(_clients[fd].getNickName(), cmds[1]));
-            }
-        }
+        return;
     }
+    if (cmds[1][0] != '#') {
+        // 채널이름이 #으로 시작하지 않는 경우
+        send_fd(fd, RPL_403_NOSUCHCHANNEL(_clients[fd].getNickName(), cmds[1]));
+        return;
+    }
+    if (_channels.find(cmds[1]) == _channels.end()) {
+        // 채널이 존재하지 않는 경우
+        send_fd(fd, RPL_403_NOSUCHCHANNEL(_clients[fd].getNickName(), cmds[1]));
+        return;
+    }
+    if (!_channels[cmds[1]].isFdInChannel(fd)) {
+        // 유저가 채널에 속해있지 않은 경우
+        send_fd(fd, RPL_442_NOTONCHANNEL(_clients[fd].getNickName(), cmds[1]));
+        return;
+    }
+    if (!_channels[cmds[1]].getIsInviteOnly()) {
+        // 초대전용 채널이 아닌 경우
+        send_fd(fd, RPL_477_NOCHANMODES(_clients[fd].getNickName(), cmds[1], "i"));
+        return;
+    }
+    if (!_channels[cmds[1]].isFdInOPList(fd)) {
+        // 유저가 op가 아닌 경우
+        send_fd(fd, RPL_482_CHANOPRIVSNEEDED(_clients[fd].getNickName(), cmds[1]));
+        return;
+    }
+    if (!isNickInServer(cmds[2])) {
+        // 초대할 유저가 서버에 존재하지 않는 경우
+        send_fd(fd, RPL_401_NOSUCHNICK(_clients[fd].getNickName(), cmds[2]));
+        return;
+    }
+    if (_channels[cmds[1]].isFdInInviteList(findFdByNick(cmds[2]))) {
+        // 이미 초대된 유저인 경우
+        send_fd(fd, RPL_443_ERR_USERONCHANNEL(_clients[fd].getNickName(), cmds[1]));
+        return;
+    }
+
+    // invite list에 유저 추가
+    _channels[cmds[1]].addInviteClient(findFdByNick(cmds[2]));
+
+    // 초대 메시지 전송
+    send_fd(findFdByNick(cmds[2]), RPL_341_INVITE(_clients[fd].getNickName(), cmds[1]));
 }
 
 void Server::cmdPing(int fd, std::vector<std::string> cmds) {
-    if (cmds.size() < 2)
+    if (cmds.size() < 2) {
         send_fd(fd, RPL_461_NEEDMOREPARAMS(_clients[fd].getNickName(), "PING"));
-    else {
-        send_fd(fd, RPL_PONG(_clients[fd].getNickName()));
+        return;
     }
+
+    // PONG 메시지 전송
+    send_fd(fd, RPL_PONG(_clients[fd].getNickName()));
 }
 
 void Server::cmdQuit(int fd, int i) {
@@ -812,8 +815,8 @@ int Server::findFdByNick(std::string nick) {
     return (-1);
 }
 
-void Server::checkChannelEmpty(Channel& channel) {
+void Server::checkChannelEmpty(Channel &channel) {
     if (channel.getClients().size() != 0)
-        return ;
+        return;
     _channels.erase(channel.getChannelName());
 }
