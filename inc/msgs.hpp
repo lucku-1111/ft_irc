@@ -120,13 +120,15 @@ const static std::string version = "1.0.0";
 #define RPL_MODEWITHPARAM(nick, channel, mode, param) ":" + nick + " MODE " + channel + " " + mode +  " :"+ param + "\r\n"
 
 // Pong message
-#define RPL_PONG(client) (colonServerName + "PONG " + serverName + " " + colonServerName)
+#define RPL_PONG(client) (colonServerName + " PONG " + serverName + " " + colonServerName)
 
 // Response to Quit
 #define RPL_QUIT(client) (colonServerName + client + " QUIT: " + serverName + "\r\n")
 
 // Invalid param
-#define RPL_INVALIDPARAM(client, param) (colonServerName + "ERR " + client + " " + param + " :Invalid param\r\n")
+#define RPL_INVALIDPARAM(client, param) (colonServerName + " ERR " + client + " " + param + " :Invalid param\r\n")
 
+// Lotto
+#define RPL_LOTTO(client, num) (colonServerName + "372 LOTTO " + client + ", Your lotto number is :[ " + num + " ]\r\n")
 
 #endif

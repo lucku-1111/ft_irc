@@ -93,6 +93,9 @@ public:
 
     bool validateJoin(int fd, std::vector<std::string> cmds, bool flag);
 
+    ///// Bot Functions /////
+    void cmdLotto(int fd);
+
 };
 
 std::vector<std::string> splitMsg(std::string line);
