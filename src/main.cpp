@@ -14,14 +14,29 @@ bool checkPwd(std::string pwd) {
     return (true);
 }
 
-void sendFd(int fd, std::string str) {
-    int ret = send(fd, str.c_str(), str.size(), 0);
-    if (ret == -1) {
-        std::cerr << str.c_str() << "\n";
+void sendFd(int fd, const std::string &str) {
+    size_t totalSent = 0; // 전송된 총 바이트 수
+    ssize_t sent; // 한 번의 send 호출로 전송된 바이트 수
+    size_t strSize = str.size(); // 전송해야 할 전체 문자열의 크기
+
+    // 문자열의 끝에 도달하거나 send 함수에서 오류가 발생할 때까지 반복
+    while (totalSent < strSize) {
+        sent = send(fd, str.c_str() + totalSent, strSize - totalSent, 0);
+        if (sent == -1) {
+            // 오류 처리: EAGAIN 또는 EWOULDBLOCK은 재시도를 의미할 수 있음
+            // 블로킹 모드에서는 이러한 오류는 일반적으로 발생하지 않음
+            std::cerr << "Failed to send data: " << strerror(errno) << "\n";
+            break; // 실패한 경우 반복 중단
+        }
+        totalSent += sent; // 전송된 바이트 수 업데이트
     }
-    std::cout << "========== send client " << fd << " ==========\n";
-    std::cout << str << "\n\n";
-    return;
+
+    if (totalSent == strSize) {
+        std::cout << "========== send client " << fd << " ==========\n";
+        std::cout << str << "\n\n";
+    } else {
+        std::cerr << "Failed to send the entire message\n";
+    }
 }
 
 int main(int ac, char **av) {

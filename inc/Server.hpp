@@ -21,7 +21,7 @@
 #define BUF_SIZE 512
 #define MAX_CLIENT 100
 
-extern void sendFd(int fd, std::string str);
+extern void sendFd(int fd, const std::string &str);
 
 class Client;
 
