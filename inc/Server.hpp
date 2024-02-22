@@ -14,6 +14,7 @@
 #include <string>
 #include <map>
 #include <sstream>
+#include <cerrno>
 
 #include "Client.hpp"
 #include "Channel.hpp"
