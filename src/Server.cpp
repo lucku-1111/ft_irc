@@ -844,30 +844,29 @@ bool Server::validateJoin(int fd, std::vector<std::string> cmds, bool flag) {
 
 ///// Bot Functions /////
 void Server::cmdLotto(int fd) {
-
-    // 1~45까지의 숫자중 6개를 생성
+    // 1~45까지의 숫자 중 6개를 생성
     std::vector<int> lottoNums;
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 6;) {
         int num = rand() % 45 + 1;
-        if (std::find(lottoNums.begin(), lottoNums.end(), num) != lottoNums.end()) {
-            i--;
-            continue;
+
+        if (std::find(lottoNums.begin(), lottoNums.end(), num) == lottoNums.end()) {
+            lottoNums.push_back(num);
+            i++;
         }
-        lottoNums.push_back(num);
     }
 
     // 생성된 숫자를 오름차순으로 정렬
     std::sort(lottoNums.begin(), lottoNums.end());
 
     // 생성된 숫자를 문자열로 변환
-    std::string lottoNumsStr = "";
+    std::ostringstream lottoNumsStr;
     for (int i = 0; i < 6; i++) {
-        lottoNumsStr += std::to_string(lottoNums[i]);
+        lottoNumsStr << lottoNums[i];
         if (i != 5)
-            lottoNumsStr += ", ";
+            lottoNumsStr << ", ";
     }
 
     // 생성된 로또 번호를 클라이언트에게 전송
-    sendFd(fd, RPL_LOTTO(_clients[fd].getNickName(), lottoNumsStr));
+    sendFd(fd, RPL_LOTTO(_clients[fd].getNickName(), lottoNumsStr.str()));
 }
 

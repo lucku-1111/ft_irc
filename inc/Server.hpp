@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <string>
 #include <map>
+#include <sstream>
 
 #include "Client.hpp"
 #include "Channel.hpp"
