@@ -103,20 +103,11 @@ void Server::recvClient(int i) {
     count = recv(clientFd, buf, BUF_SIZE, 0);
 
     if (count <= 0) {
-        if (count == 0) {
+        if (count == 0)
             std::cerr << "Client(fd: " << clientFd << ") is disconnected" << std::endl;
-            cmdQuit(clientFd, i);
-            return;
-        }
-        std::cerr << "Error: recv function fail" << std::endl;
-        _lines[i].clear();
-        close(clientFd);
-        _pollFds.erase(_pollFds.begin() + i);
-        for (std::map<std::string, Channel>::iterator it = _channels.begin(); it != _channels.end(); it++) {
-            it->second.removeClient(clientFd);
-            checkChannelEmpty(it->second);
-        }
-        _clients.erase(clientFd);
+        else
+            std::cerr << "Error: recv function fail" << std::endl;
+        cmdQuit(clientFd, i);
         return;
     }
 
@@ -347,8 +338,9 @@ void Server::cmdPart(int fd, std::vector<std::string> cmds) {
         // 클라이언트에서 채널 제거
         _clients[fd].removeChannel(cmds[1]);
 
-        // 채널이 비어있는지 확인
-        checkChannelEmpty(_channels[cmds[1]]);
+        // 채널이 비어있는지 확인하고 비어있으면 채널 삭제
+        if (_channels[cmds[1]].getClients().size() == 0)
+            _channels.erase(cmds[1]);
 
         // 채널에 메시지 전송
         sendFd(fd, RPL_PART(_clients[fd].getNickName(), _clients[fd].getUserName(), _clients[fd].getServerName(), cmds[1]));
@@ -766,16 +758,29 @@ void Server::cmdPing(int fd, std::vector<std::string> cmds) {
     sendFd(fd, RPL_PONG(_clients[fd].getNickName()));
 }
 
+
 void Server::cmdQuit(int fd, int i) {
     sendAll(fd, RPL_QUIT(_clients[fd].getNickName()));
 
     _lines[i].clear();
     close(fd);
     _pollFds.erase(_pollFds.begin() + i);
-    for (std::map<std::string, Channel>::iterator it = _channels.begin(); it != _channels.end(); it++) {
+
+    std::vector<std::string> emptyChannels; // 비어있는 채널 이름을 저장할 벡터
+
+    // _channels 맵을 순회
+    for (std::map<std::string, Channel>::iterator it = _channels.begin(); it != _channels.end(); ++it) {
         it->second.removeClient(fd);
-        checkChannelEmpty(it->second);
+        if (it->second.getClients().size() == 0) { // 채널이 비어있다면
+            emptyChannels.push_back(it->first); // 삭제할 채널 목록에 추가
+        }
     }
+
+    // 비어있는 채널들을 _channels 맵에서 제거
+    for (std::vector<std::string>::iterator it = emptyChannels.begin(); it != emptyChannels.end(); ++it) {
+        _channels.erase(*it);
+    }
+
     _clients.erase(fd);
 }
 
@@ -801,13 +806,6 @@ int Server::findFdByNick(std::string nick) {
     }
     return (-1);
 }
-
-void Server::checkChannelEmpty(Channel channel) {
-    if (channel.getClients().size() != 0)
-        return;
-    _channels.erase(channel.getChannelName());
-}
-
 
 bool Server::validateJoin(int fd, std::vector<std::string> cmds, bool flag) {
     if (flag) {
