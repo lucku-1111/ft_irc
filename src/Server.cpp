@@ -643,7 +643,7 @@ void Server::cmdTopic(int fd, std::vector<std::string> cmds) {
     }
     // 토픽 설정
     _channels[cmds[1]].setTopic(cmds[2]);
-    sendAll(0, RPL_332_TOPIC(_clients[fd].getNickName(), cmds[1], _channels[cmds[1]].getTopic()));
+    _channels[cmds[1]].sendToAllClients(0, RPL_332_TOPIC(_clients[fd].getNickName(), cmds[1], cmds[2]));
 }
 
 void Server::cmdInvite(int fd, std::vector<std::string> cmds) {
