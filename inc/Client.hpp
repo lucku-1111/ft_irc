@@ -25,14 +25,14 @@ private:
     // 클라이언트의 유저네임
     std::string _userName;
 
-    // 클라이언트의 호스트네임
-    std::string _hostName;
-
-    // 클라이언트의 리얼네임
-    std::string _realName;
+    // 클라이언트의 모드
+    std::string _mode;
 
     // 클라이언트의 서버네임
     std::string _serverName;
+
+    // 클라이언트의 리얼네임
+    std::string _realName;
 
     // 클라이언트가 속한 채널
     std::map<std::string, Channel *> _clientChannels;
@@ -73,14 +73,14 @@ public:
     // get client's username
     std::string getUserName();
 
-    // get client's realname
-    std::string getRealName();
-
-    // get client's hostname
-    std::string getHostName();
+    // get client's mode
+    std::string getMode();
 
     // get client's servername
     std::string getServerName();
+
+    // get client's realname
+    std::string getRealName();
 
     std::map<std::string, Channel *> getClientChannels();
 
@@ -97,14 +97,14 @@ public:
     // set client's username
     void setUserName(std::string userName);
 
-    // set client's realname
-    void setRealName(std::string realName);
-
-    // set client's hostname
-    void setHostName(std::string hostName);
+    // set client's mode
+    void setMode(std::string mode);
 
     // set client's servername
     void setServerName(std::string serverName);
+
+    // set client's realname
+    void setRealName(std::string realName);
 
     // set PASS command received
     void setIsPasswordSet(bool isPasswordSet);

@@ -8,7 +8,7 @@ Client::Client() {
     _status = NoPassword;
     _nickName = "*";
     _userName = "*";
-    _hostName = "ft_irc";
+    _mode = "*";
     _realName = "*";
     _serverName = "ft_irc_server";
     _isPasswordSet = false;
@@ -24,7 +24,7 @@ Client::Client(int fd) : _clientFd(fd) {
     _status = NoPassword;
     _nickName = "*";
     _userName = "*";
-    _hostName = "ft_irc";
+    _mode = "*";
     _realName = "*";
     _serverName = "ft_irc_server";
     _isPasswordSet = false;
@@ -60,8 +60,8 @@ std::string Client::getRealName() {
     return (_realName);
 }
 
-std::string Client::getHostName() {
-    return (_hostName);
+std::string Client::getMode() {
+    return (_mode);
 }
 
 std::string Client::getServerName() {
@@ -94,8 +94,8 @@ void Client::setRealName(std::string real) {
     _realName = real;
 }
 
-void Client::setHostName(std::string host) {
-    _hostName = host;
+void Client::setMode(std::string mode) {
+    _mode = mode;
 }
 
 void Client::setServerName(std::string server) {

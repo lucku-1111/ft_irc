@@ -18,7 +18,7 @@ const static std::string version = "1.0.0";
 #define RPL_003_CREATED(client) (colonServerName + "003 " + client + " :This server was created 2024 FEB 19 \r\n")
 
 // 004 :Part of the post-registration greeting
-#define RPL_004_SERVERINFO(client) (colonServerName + "004 " + client + " " + serverName + version + "- itkol " + "\r\n")
+#define RPL_004_SERVERINFO(client) (colonServerName + "004 " + client + " " + serverName + version + " - itkol " + "\r\n")
 
 
 ///// Channel and User commands /////
@@ -38,7 +38,7 @@ const static std::string version = "1.0.0";
 #define RPL_353_NAMREPLY(client, channel, names) (colonServerName + "353 " + client + " = " + channel + " :" + names + "\r\n")
 
 // 366: End of NAMES list
-#define RPL_366_ENDOFNAMES(client, channel) (colonServerName + "366 " + client + " " + channel + " :End of NAMES list\r\n")
+#define RPL_366_ENDOFNAMES(client, channel) (colonServerName + "366 " + client + " = " + channel + " :End of NAMES list\r\n")
 
 ///// Error and Status messages /////
 
@@ -99,16 +99,16 @@ const static std::string version = "1.0.0";
 ///// Command responses /////
 
 // Response to NICK
-#define RPL_NICK(nick, hostname, servername, newnick) ":" + nick + "!" + hostname + "@" + servername + " NICK :" + newnick + "\r\n"
+#define RPL_NICK(nick, username, servername, newnick) ":" + nick + "!" + username + "@" + servername + " NICK :" + newnick + "\r\n"
 
 // Response to JOIN
-#define RPL_JOIN(nick, hostname, servername, channel) ":" + nick + "!" + hostname + "@" + servername + " JOIN :" + channel + "\r\n"
+#define RPL_JOIN(nick, username, servername, channel) ":" + nick + "!" + username + "@" + servername + " JOIN :" + channel + "\r\n"
 
 // Response to PART
-#define RPL_PART(nick, hostname, servername, channel) ":" + nick + "!" + hostname + "@" + servername + " PART :" + channel + "\r\n"
+#define RPL_PART(nick, username, servername, channel) ":" + nick + "!" + username + "@" + servername + " PART :" + channel + "\r\n"
 
 // Response to KICK
-#define RPL_KICK(nick, hostname, servername, channel, kickuser, msg) ":" + nick + "!" + hostname + "@" + servername + " KICK " + channel + " " + kickuser + " :" + msg + "\r\n"
+#define RPL_KICK(nick, username, servername, channel, kickuser, msg) ":" + nick + "!" + username + "@" + servername + " KICK " + channel + " " + kickuser + " :" + msg + "\r\n"
 
 // Response to pivate message
 #define RPL_PRIVMSG(nick, user, servername, channel, msg) ":" + nick + "!" + user + "@" + servername + " PRIVMSG " + channel + " :" + msg + "\r\n"

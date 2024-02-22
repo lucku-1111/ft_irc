@@ -91,7 +91,7 @@ public:
 
     int findFdByNick(std::string nick);
 
-    void checkChannelEmpty(Channel &channel);
+    void checkChannelEmpty(Channel channel);
 
     bool validateJoin(int fd, std::vector<std::string> cmds, bool flag);
 

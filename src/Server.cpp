@@ -192,7 +192,7 @@ void Server::executeCommand(int fd, std::vector<std::string> cmds, int idx) {
             cmdNick(fd, cmds);
         else
             // 비밀번호는 있고 닉네임이 없는 상태에서 pass, nick 명령어가 아닌 경우
-            send(fd, "CheckIn cmdType must be in order : |PASS| -> |NICK| -> |USER| \r\n", 61, 0);
+            sendFd(fd, "CheckIn cmdType must be in order : |PASS| -> |NICK| -> |USER| \r\n");
     } else if (_clients[fd].getStatus() == NoUsername) {
         // 유저네임이 없는 상태에서 pass, nick, user 명령어인 경우
         if (cmdType == "pass" || cmdType == "PASS")
@@ -257,8 +257,8 @@ void Server::cmdNick(int fd, std::vector<std::string> cmds) {
     if (cmds.size() < 2 || cmds[1] == "")
         sendFd(fd, RPL_431_NONICKNAMEGIVEN(_clients[fd].getNickName()));
     else if (validateNick(fd, cmds[1], _clients)) {
-        sendFd(fd, RPL_NICK(_clients[fd].getNickName(), _clients[fd].getHostName(), _clients[fd].getServerName(), cmds[1]));
-        sendAll(fd, RPL_NICK(_clients[fd].getNickName(), _clients[fd].getHostName(), _clients[fd].getServerName(), cmds[1]));
+        sendFd(fd, RPL_NICK(_clients[fd].getNickName(), _clients[fd].getMode(), _clients[fd].getServerName(), cmds[1]));
+        sendAll(fd, RPL_NICK(_clients[fd].getNickName(), _clients[fd].getMode(), _clients[fd].getServerName(), cmds[1]));
         _clients[fd].getClientChannels();
         _clients[fd].setNickName(cmds[1]);
         _clients[fd].setIsNickSet(true);
@@ -270,8 +270,8 @@ void Server::cmdUser(int fd, std::vector<std::string> cmds) {
         sendFd(fd, RPL_461_NEEDMOREPARAMS(_clients[fd].getNickName(), "USER"));
     else {
         _clients[fd].setUserName(cmds[1]);
-        _clients[fd].setHostName(cmds[2]);
-        _clients[fd].setServerName(cmds[3]);
+        _clients[fd].setMode(cmds[2]);
+        _clients[fd].setServerName("localhost");
         _clients[fd].setRealName(cmds[4]);
         _clients[fd].setIsUserSet(true);
     }
@@ -317,7 +317,7 @@ void Server::cmdJoin(int fd, std::vector<std::string> cmds) {
 
     }
     // 채널에 새로운 클라이언트 입장 메시지 전송
-    _channels[cmds[1]].sendToAllClients(0, RPL_JOIN(_clients[fd].getNickName(), _clients[fd].getHostName(), _clients[fd].getServerName(), cmds[1]));
+    _channels[cmds[1]].sendToAllClients(0, RPL_JOIN(_clients[fd].getNickName(), _clients[fd].getUserName(), _clients[fd].getServerName(), cmds[1]));
 
     // 채널에 존재하는 클라이언트 목록 전송
     if (_channels[cmds[1]].getTopic() != "")
@@ -351,8 +351,8 @@ void Server::cmdPart(int fd, std::vector<std::string> cmds) {
         checkChannelEmpty(_channels[cmds[1]]);
 
         // 채널에 메시지 전송
-        sendFd(fd, RPL_PART(_clients[fd].getNickName(), _clients[fd].getHostName(), _clients[fd].getServerName(), cmds[1]));
-        _channels[cmds[1]].sendToAllClients(fd, RPL_PART(_clients[fd].getNickName(), _clients[fd].getHostName(), _clients[fd].getServerName(), cmds[1]));
+        sendFd(fd, RPL_PART(_clients[fd].getNickName(), _clients[fd].getUserName(), _clients[fd].getServerName(), cmds[1]));
+        _channels[cmds[1]].sendToAllClients(fd, RPL_PART(_clients[fd].getNickName(), _clients[fd].getUserName(), _clients[fd].getServerName(), cmds[1]));
     } else {
         // 채널이름이 존재하지 않는 경우
         sendFd(fd, RPL_403_NOSUCHCHANNEL(_clients[fd].getNickName(), cmds[1]));
@@ -745,7 +745,7 @@ void Server::cmdKick(int fd, std::vector<std::string> cmds) {
     }
 
     // 킥 메시지 전송
-    _channels[cmds[1]].sendToAllClients(0, RPL_KICK(_clients[fd].getNickName(), _clients[fd].getHostName(), _clients[fd].getServerName(), cmds[1], cmds[2], kickMsg));
+    _channels[cmds[1]].sendToAllClients(0, RPL_KICK(_clients[fd].getNickName(), _clients[fd].getUserName(), _clients[fd].getServerName(), cmds[1], cmds[2], kickMsg));
 
     // 채널에서 클라이언트 제거
     _channels[cmds[1]].removeClient(findFdByNick(cmds[2]));
@@ -802,7 +802,7 @@ int Server::findFdByNick(std::string nick) {
     return (-1);
 }
 
-void Server::checkChannelEmpty(Channel &channel) {
+void Server::checkChannelEmpty(Channel channel) {
     if (channel.getClients().size() != 0)
         return;
     _channels.erase(channel.getChannelName());
